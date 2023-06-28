@@ -1,11 +1,46 @@
+
+import clear_memory
+
+
+
+
+import torch#pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
 import cv2
 import numpy as np
 from PIL import Image
 import os
-import torch #pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
 import time
 import traceback
+
+
+import subprocess
+# play audio when script reach end
+
+def play_audio( audio = None):
+    if audio is None:
+        audio_path = os.path.join(os.path.dirname(__file__), "audio", "end.wav")
+    else:
+        audio_path = os.path.join(os.path.dirname(__file__), "audio", audio)
+
+    if os.path.isfile(audio_path):
+        print("Playing audio" + audio_path)
+    else:
+        print("Audio file not found")
+        return
+    
+    import clr
+
+    clr.AddReference('System')
+    from System.Media import SoundPlayer
+    sp = SoundPlayer()
+    sp.SoundLocation = audio_path
+    sp.Play()
+
+
+
 
 # begin_time = time.time()
 # import_time = time.time() - begin_time
@@ -34,6 +69,7 @@ def convert2canny():
     canny_image.save(image_path)
 
     print("Image saved")
+    play_audio()
     return canny_image
 
 
@@ -76,6 +112,7 @@ def initiate_pipeline(canny_image):
 
     # cpu offload for memory saving, requires accelerate>=0.17.0
     pipe.enable_model_cpu_offload()
+    play_audio()
 
     return pipe, generator
 
@@ -87,7 +124,7 @@ def text2image(pipe, generator):
         num_inference_steps=20,
         generator=generator,
         image=canny_image,
-        num_images_per_prompt = 10,
+        num_images_per_prompt = 1,
         controlnet_conditioning_scale=0.5
     ).images
 
@@ -98,6 +135,7 @@ def text2image(pipe, generator):
         image.save(image_path)
 
     print("AI out")
+    play_audio()
 
 
 if __name__ == '__main__':

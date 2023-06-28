@@ -1,3 +1,5 @@
+# python -m streamlit run main.py
+
 import os
 
 from PIL import Image
@@ -76,7 +78,7 @@ def main():
     st.markdown("""---""")
 
     input_image = st.file_uploader(
-        "Upload your control image.", type='jpg, png')
+        "Upload your control image.", type=['png', 'jpg', 'jpeg'])
     if input_image is None:
         return
     st.image(input_image, use_column_width=True,

@@ -124,6 +124,10 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/cudart64_110.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avdevice-58.dll;."
   }
  ],
  "nonPyinstallerOptions": {

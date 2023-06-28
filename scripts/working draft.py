@@ -125,7 +125,7 @@ def initiate_pipeline(canny_image):
 
 def text2image(canny_image, pipe, generator):
     images = pipe(
-        "architecture rendering, professional, high resolution, european modern architects, very detailed, natural lighting, award-winning, highest quality, sci-fi, natural material",
+        "architecture exterior rendering, professional, archdaily.com, japanese architects, peaceful, few people, city center, after rain, dusk, vivid texture and reflection, high resolution, european modern architects, very detailed, natural lighting, award-winning, highest quality, sci-fi, natural material.",
         negative_prompt="cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, blurry, bad anatomy, bad proportions",
         num_inference_steps=20,
         generator=generator,
@@ -151,7 +151,7 @@ def main():
 
     pipe, generator = initiate_pipeline(canny_image)
 
-    for i in range(5):
+    for i in range(50):
         text2image(canny_image, pipe, generator)
 
 if __name__ == '__main__':

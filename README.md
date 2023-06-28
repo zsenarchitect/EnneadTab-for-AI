@@ -17,3 +17,7 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 
 Documentation on stable diffusion.
 https://huggingface.co/docs/diffusers/v0.16.0/en/api/pipelines/stable_diffusion/img2img
+
+
+Guide to train my own SD model
+https://betterprogramming.pub/train-your-own-stable-diffusion-model-locally-no-code-needed-36f943825d23

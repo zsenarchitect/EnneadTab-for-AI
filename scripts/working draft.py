@@ -1,15 +1,16 @@
 
 import clear_memory
 
-
-
+clear_memory.clear()
+import os
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=32'
 
 import torch#pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 import cv2
 import numpy as np
 from PIL import Image
-import os
+
 
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
 import time
@@ -26,7 +27,7 @@ def play_audio( audio = None):
         audio_path = os.path.join(os.path.dirname(__file__), "audio", audio)
 
     if os.path.isfile(audio_path):
-        print("Playing audio" + audio_path)
+        print("Playing audio: " + audio_path)
     else:
         print("Audio file not found")
         return
@@ -119,23 +120,26 @@ def initiate_pipeline(canny_image):
 
 def text2image(pipe, generator):
     images = pipe(
-        "architecture rendering, professional, high resolution, zaha hadid, highest quality, sci-fi",
+        "architecture rendering, professional, high resolution, zaha hadid, highest quality, sci-fi, natural material",
         negative_prompt="cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, blurry, bad anatomy, bad proportions",
         num_inference_steps=20,
         generator=generator,
         image=canny_image,
-        num_images_per_prompt = 1,
+        num_images_per_prompt = 10,
         controlnet_conditioning_scale=0.5
     ).images
 
     # Get the absolute path to the active script
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    session = time.strftime("%Y%m%d-%H%M%S")
     for i, image in enumerate(images):
-        image_path = os.path.join(script_dir, 'imgs', 'OUT', 'AI_{}.jpg'.format(i))
+        image_path = os.path.join(script_dir, 'imgs', 'OUT', 'Session_{}_AI_{}.jpg'.format(session, i))
         image.save(image_path)
+        
+        clear_memory.clear()
 
     print("AI out")
-    play_audio()
+    play_audio("finish.wav")
 
 
 if __name__ == '__main__':
@@ -145,4 +149,5 @@ if __name__ == '__main__':
 
     pipe, generator = initiate_pipeline(canny_image)
 
-    text2image(pipe, generator)
+    for i in range(10):
+        text2image(pipe, generator)

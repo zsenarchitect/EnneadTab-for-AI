@@ -1,7 +1,7 @@
 import gc
 import torch
 
+def clear():
+    gc.collect()
 
-gc.collect()
-
-torch.cuda.empty_cache()
+    torch.cuda.empty_cache()

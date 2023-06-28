@@ -3,3 +3,8 @@ accelerate
 opencv-contrib-python
 transformers
 xformers
+streamlit
+cv2
+numpy
+PIL
+torch

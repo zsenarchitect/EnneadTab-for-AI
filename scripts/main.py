@@ -1,18 +1,22 @@
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui
+
 from PIL import Image
 import numpy as np
 import cv2
 import torch
 from diffusers import ControlNetModel, StableDiffusionControlNetPipeline, DPMSolverMultistepScheduler
-
+import streamlit as st
 
 class ImageProcessor:
-    def __init__(self, script_dir):
-        self.script_dir = script_dir
+    def __init__(self, input_image):
+        self.input_image = input_image
 
-    def convert2canny(self, image_path):
-        image = Image.open(image_path)
+    @property
+    def script_dir(self):
+        return os.path.dirname(os.path.abspath(__file__))
+
+    def convert2canny(self):
+        image = Image.open(self.input_image)
         image = np.array(image)
 
         low_threshold = 100
@@ -27,9 +31,9 @@ class ImageProcessor:
         canny_image.save(out_path)
 
         print("Image saved")
-        return canny_image
+        self.canny_image = canny_image
 
-    def initiate_pipeline(self, canny_image):
+    def initiate_pipeline(self):
         torch.cuda.manual_seed(12345)
         generator = torch.Generator()
         generator.manual_seed(12345)
@@ -42,15 +46,15 @@ class ImageProcessor:
         pipe.enable_xformers_memory_efficient_attention()
         pipe.enable_model_cpu_offload()
 
-        return pipe, generator
+        self.pipe, self.generator = pipe, generator
 
-    def text2image(self, pipe, generator, canny_image, text, negative_text):
-        image = pipe(
+    def text2image(self, text, negative_text):
+        image = self.pipe(
             text,
             negative_prompt=negative_text,
             num_inference_steps=20,
-            generator=generator,
-            image=canny_image,
+            generator=self.generator,
+            image=self.canny_image,
             controlnet_conditioning_scale=0.5
         ).images[0]
 
@@ -58,61 +62,49 @@ class ImageProcessor:
         image.save(out_path)
 
         print("AI out")
+        return image
 
 
-class GUI(QtWidgets.QMainWindow):
-    def __init__(self, image_processor):
-        super(GUI, self).__init__()
+    def setup(self):
+        self.convert2canny()
+        self.initiate_pipeline()
 
-        self.image_processor = image_processor
 
-        self.setWindowTitle('AI Image Processor')
+def main():
+    st.title('EnneadTab-for-Web')
+    st.header("Text2Image 💬")
+    st.markdown("""---""")
 
-        self.input_path_line = QtWidgets.QLineEdit(self)
-        self.input_path_line.setPlaceholderText("Enter image path here...")
-        self.input_path_line.setGeometry(50, 50, 300, 40)
+    input_image = st.file_uploader(
+        "Upload your control image.", type='jpg, png')
+    if input_image is None:
+        return
+    st.image(input_image, use_column_width=True,
+             caption="Uploaded Image as refernce.")
+    image_processor = ImageProcessor(input_image)
+    image_processor.setup()
 
-        self.browse_button = QtWidgets.QPushButton("Browse", self)
-        self.browse_button.setGeometry(360, 50, 100, 40)
-        self.browse_button.clicked.connect(self.browse_image)
+    
+    st.markdown("""---""")
+    positive_prompt = st.text_input(
+        "Descript your desired images.")
+    negative_prompt = st.text_input(
+        "Descript your desired negative images.")
+    
+    out_image = image_processor.text2image(positive_prompt, negative_prompt)
 
-        self.text_line = QtWidgets.QLineEdit(self)
-        self.text_line.setPlaceholderText("Enter text here...")
-        self.text_line.setGeometry(50, 100, 300, 40)
 
-        self.negative_text_line = QtWidgets.QLineEdit(self)
-        self.negative_text_line.setPlaceholderText(
-            "Enter negative prompt here...")
-        self.negative_text_line.setGeometry(50, 150, 300, 40)
+   
+    
+    
+    
+    st.markdown("""---""")
+    st.image(out_image, use_column_width=True,
+             caption="This App is created by Sen Zhang")
+ 
 
-        self.submit_button = QtWidgets.QPushButton("Process", self)
-        self.submit_button.setGeometry(50, 200, 100, 40)
-        self.submit_button.clicked.connect(self.process_image)
-
-    def browse_image(self):
-        options = QtWidgets.QFileDialog.Options()
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
-                                                             "All Files (*);;JPEG (*.jpg);;PNG (*.png)", options=options)
-        if file_name:
-            self.input_path_line.setText(file_name)
-
-    def process_image(self):
-        img_path = self.input_path_line.text()
-        text = self.text_line.text()
-        negative_text = self.negative_text_line.text()
-
-        canny_image = self.image_processor.convert2canny(img_path)
-        pipe, generator = self.image_processor.initiate_pipeline(canny_image)
-        self.image_processor.text2image(
-            pipe, generator, canny_image, text, negative_text)
 
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
+    main()
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    image_processor = ImageProcessor(script_dir)
-    gui = GUI(image_processor)
-    gui.show()
-
-    app.exec_()

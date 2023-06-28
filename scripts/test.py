@@ -5,6 +5,8 @@ import os
 import torch
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
 import time
+import tracebac
+
 # begin_time = time.time()
 # import_time = time.time() - begin_time
 # print("import_time: {}".format(import_time))
@@ -58,8 +60,14 @@ def initiate_pipeline(canny_image):
     # change the scheduler
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(
         pipe.scheduler.config)
+    
+    
+    # check availibity
+    print (torch.cuda.is_available() )
+    
     # enable xformers (optional), requires xformers installation
     pipe.enable_xformers_memory_efficient_attention()
+
     # cpu offload for memory saving, requires accelerate>=0.17.0
     pipe.enable_model_cpu_offload()
 
@@ -85,6 +93,8 @@ def text2image(pipe, generator):
 
 
 if __name__ == '__main__':
+
+
     canny_image = convert2canny()
 
     pipe, generator = initiate_pipeline(canny_image)

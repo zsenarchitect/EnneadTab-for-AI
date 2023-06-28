@@ -1,9 +1,12 @@
 
 import clear_memory
-
+import traceback    
 clear_memory.clear()
 import os
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=32'
+# try:
+# os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
+# except:
+#     print (traceback.format_exc())
 
 import torch#pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
@@ -115,12 +118,14 @@ def initiate_pipeline(canny_image):
     pipe.enable_model_cpu_offload()
     play_audio()
 
+    print ("pipeline and generator initiated")
+
     return pipe, generator
 
 
-def text2image(pipe, generator):
+def text2image(canny_image, pipe, generator):
     images = pipe(
-        "architecture rendering, professional, high resolution, zaha hadid, highest quality, sci-fi, natural material",
+        "architecture rendering, professional, high resolution, european modern architects, very detailed, natural lighting, award-winning, highest quality, sci-fi, natural material",
         negative_prompt="cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, blurry, bad anatomy, bad proportions",
         num_inference_steps=20,
         generator=generator,
@@ -141,13 +146,19 @@ def text2image(pipe, generator):
     print("AI out")
     play_audio("finish.wav")
 
-
-if __name__ == '__main__':
-
-
+def main():
     canny_image = convert2canny()
 
     pipe, generator = initiate_pipeline(canny_image)
 
-    for i in range(10):
-        text2image(pipe, generator)
+    for i in range(5):
+        text2image(canny_image, pipe, generator)
+
+if __name__ == '__main__':
+
+    try:
+        main()
+    except Exception as e:
+        error = traceback.format_exc()
+        with open("{}\error.txt".format(r"C:\Users\szhang\github\EnneadTab-for-AI\output"), "w") as f:
+            f.write(error)

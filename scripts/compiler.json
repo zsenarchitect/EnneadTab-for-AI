@@ -1,0 +1,133 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/working draft.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": false
+  },
+  {
+   "optionDest": "console",
+   "value": true
+  },
+  {
+   "optionDest": "ascii",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "debug",
+   "value": "imports"
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "embed_manifest",
+   "value": true
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "win_private_assemblies",
+   "value": false
+  },
+  {
+   "optionDest": "win_no_prefer_redirects",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/imgs;imgs/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/audio;audio/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/clear_memory.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/.venv/Lib/site-packages/torchaudio/lib/_torchaudio_ffmpeg.pyd;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/.venv/Lib/site-packages/torchvision/cudart64_110.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/.venv/Lib/site-packages/transformers;transformers/"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "tqdm"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/api-ms-win-security-systemfunctions-l1-1-0.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avcodec-58.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avdevice-57.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avfilter-7.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avformat-58.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avutil-56.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/cudart64_110.dll;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}

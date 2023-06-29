@@ -1,7 +1,10 @@
 # EnneadTab-for-AI
 
 
-How to activate
+
+- How to activate:
+when inside the terminal, type <.venv/Scripts/activate> and enter(no <>)
+it will show as below:
 PS C:\Users\szhang\github\EnneadTab-for-AI> .venv/Scripts/activate
 (.venv) PS C:\Users\szhang\github\EnneadTab-for-AI> 
 
@@ -13,6 +16,7 @@ https://ngwaifoong92.medium.com/introduction-to-controlnet-for-stable-diffusion-
 
 - special note for pytorch
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
 
 
 - Documentation on stable diffusion.

@@ -10,6 +10,7 @@ pillow
 opencv-contrib-python
 auto_py_to_exe
 playsound==1.2.2
+pyautogui
 
 diffusers
 accelerate

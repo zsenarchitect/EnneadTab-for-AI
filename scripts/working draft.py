@@ -14,6 +14,8 @@ try:
 
     import cv2
     import numpy as np
+    import PIL # this is to force include PIL in the pyinstaller process. The import itself does nothing.
+    print (PIL.__version__)
     from PIL import Image
 
     from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
@@ -125,7 +127,10 @@ def initiate_pipeline(canny_image):
     print(torch.cuda.is_available())
 
     # enable xformers (optional), requires xformers installation
-    pipe.enable_xformers_memory_efficient_attention()
+    try:
+        pipe.enable_xformers_memory_efficient_attention()
+    except:
+        print("xformers optimzation not available")
 
     # cpu offload for memory saving, requires accelerate>=0.17.0
     pipe.enable_model_cpu_offload()

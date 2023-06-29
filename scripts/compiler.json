@@ -132,6 +132,46 @@
   {
    "optionDest": "copy_metadata",
    "value": "tqdm"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "regex"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "requests"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "packaging"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "filelock"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "numpy"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "tokenizers"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "importlib_metadata"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/.venv/Lib/site-packages/PIL;PIL/"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "pillow"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "pillow"
   }
  ],
  "nonPyinstallerOptions": {

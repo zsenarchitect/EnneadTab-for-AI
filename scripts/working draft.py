@@ -44,14 +44,16 @@ def play_audio( audio = None):
         print("Audio file not found")
         return
     
-    import clr
+    try:
+        import clr
 
-    clr.AddReference('System')
-    from System.Media import SoundPlayer
-    sp = SoundPlayer()
-    sp.SoundLocation = audio_path
-    sp.Play()
-
+        clr.AddReference('System')
+        from System.Media import SoundPlayer
+        sp = SoundPlayer()
+        sp.SoundLocation = audio_path
+        sp.Play()
+    except:
+        pass
 
 
 

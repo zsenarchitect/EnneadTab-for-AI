@@ -13,7 +13,7 @@ controlnet_aux
 clip_interrogator
 clr
 pythonnet
-
+auto_py_to_exe
 
 
 # torch==2.0.1+cu118

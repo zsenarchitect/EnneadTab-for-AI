@@ -1,0 +1,19 @@
+# pip install -r my_requirements_step2.txt
+
+
+
+clr
+pythonnet # if clr cannot find addrefernce attribute, try use pip install manually, not pip3
+streamlit
+numpy
+pillow
+opencv-contrib-python
+auto_py_to_exe
+playsound==1.2.2
+
+diffusers
+accelerate
+transformers
+xformers
+controlnet_aux
+clip_interrogator

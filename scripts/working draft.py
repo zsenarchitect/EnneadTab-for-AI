@@ -153,7 +153,7 @@ def main():
 
     pipe, generator = initiate_pipeline(canny_image)
 
-    for i in range(50):
+    for i in range(1):
         text2image(canny_image, pipe, generator)
 
 if __name__ == '__main__':
@@ -161,6 +161,9 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
+
         error = traceback.format_exc()
+        
+        print (error)
         with open("{}\error.txt".format(r"C:\Users\szhang\github\EnneadTab-for-AI\output"), "w") as f:
             f.write(error)

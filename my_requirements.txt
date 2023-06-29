@@ -4,9 +4,9 @@ opencv-contrib-python
 transformers
 xformers
 streamlit
-cv2
 numpy
-PIL
+pillow
 controlnet_aux
 clip_interrogator
-torch~=2.0.1+cu118
+torch==2.0.1+cu118
+clr

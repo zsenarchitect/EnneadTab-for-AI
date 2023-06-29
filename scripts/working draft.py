@@ -54,6 +54,7 @@ def play_audio(audio=None):
         sp.SoundLocation = audio_path
         sp.Play()
     except:
+        print("Error playing sound")
         pass
 
 

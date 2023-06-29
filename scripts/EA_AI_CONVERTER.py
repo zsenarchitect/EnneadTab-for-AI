@@ -65,6 +65,7 @@ class AiConverter:
 
     def convert2canny(self, image_path):
         image = Image.open(image_path)
+        self.original_image = image
         image = np.array(image)
 
         low_threshold = 100
@@ -83,6 +84,7 @@ class AiConverter:
 
     def text2image(self, positive_prompt, negative_prompt, num_of_output):
         # print (self.canny_image)
+        comment = ""
         while True:
             try:
                 images = self.pipeline(positive_prompt,
@@ -101,8 +103,10 @@ class AiConverter:
 
                 # Calculate the new size
                 new_size = (int(width*0.75), int(height*0.75))
-                logging.info("The image is too large, scaling it down to 75%. New size = {}".format(new_size))
-                print ("The image is too large, scaling it down to 75%. New size = {}".format(new_size))
+                comment = "\nThe image is too large, scaling it down to 75%. New size = {}".format(new_size)
+                logging.info(comment)
+                print (comment)
+                comment += comment
                 clear_memory.clear()
                 # Resize the image
                 self.canny_image = self.canny_image.resize(new_size)
@@ -113,6 +117,10 @@ class AiConverter:
         output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session))
         os.makedirs( output_folder, exist_ok=True)
         print (output_folder)
+
+        image_path = os.path.join(output_folder, 'Original.jpg')
+        self.original_image.save(image_path)
+
         for i, image in enumerate(images):
             # make sure this folder exists:
             image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
@@ -127,9 +135,15 @@ class AiConverter:
         meta_data_json = {
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
-      
+            "comments": comment,
             "session_time": self.session,
             "number_of_output": num_of_output}
+        
+        # save the meta data in the same folder as the images
+        with open(os.path.join(output_folder, "EnneadTab AI Meta Data.json"), "w") as f:
+
+            json.dump(meta_data_json, f, indent=4)
+
         return meta_data_json
 
     # @property
@@ -256,8 +270,8 @@ class App:
         self.window.after(1, self.update)
 
     def update(self):
-        # kill the app if running for more than 20 mins.
-        if time.time() - self.begining_time > 60*20:
+        # kill the app if running for more than 30 mins.
+        if time.time() - self.begining_time > 60*30:
             self.window.destroy()
             return
         self.window.after(1000, self.check_job)

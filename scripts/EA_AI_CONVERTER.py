@@ -50,7 +50,7 @@ class AiConverter:
         pass
 
 
-    def play_audio(self, file):
+    def play_audio(self, file = os.path.join(os.path.dirname(__file__), "audio", "default.wav")):
         playsound(file)
 
     def convert2canny(self, image_path):
@@ -64,7 +64,7 @@ class AiConverter:
         image = image[:, :, None]
         image = np.concatenate([image, image, image], axis=2)
         canny_image = Image.fromarray(image)
-        image_path = utils.get_EA_local_dump_folder_file("AI_canny.jpg")
+        image_path = utils.get_EA_dump_folder_file("AI_canny.jpg")
         canny_image.save(image_path)
 
         logging.info("Image saved")
@@ -72,13 +72,31 @@ class AiConverter:
         return canny_image
 
     def text2image(self, positive_prompt, negative_prompt, num_of_output):
-        images = self.pipe(positive_prompt, negative_prompt, 
-                num_inference_steps=20,
-                generator=self.generator,
-                image=self.canny_image,
-                num_images_per_prompt=num_of_output,
-                controlnet_conditioning_scale=0.5
-            ).images
+        print (self.canny_image)
+        while True:
+            try:
+                images = self.pipeline(positive_prompt,
+                                        negative_prompt = negative_prompt, 
+                                        num_inference_steps=20,
+                                        generator=self.generator,
+                                        image=self.canny_image,
+                                        num_images_per_prompt=num_of_output,
+                                        controlnet_conditioning_scale=0.5
+                    ).images
+                break
+            except Exception as e:
+                logging.info("Error in pipeline: {}".format(e))
+                print (e)
+                width, height = self.canny_image.size
+
+                # Calculate the new size
+                new_size = (int(width*0.75), int(height*0.75))
+                logging.info("The image istoo large, scaling it down to 75%. New size = {}".format(new_size))
+                print ("The image istoo large, scaling it down to 75%. New size = {}".format(new_size))
+                clear_memory.clear()
+                # Resize the image
+                self.canny_image = self.canny_image.resize(new_size)
+                
 
         # Get the absolute path to the active script
         
@@ -98,25 +116,40 @@ class AiConverter:
         meta_data_json = {
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
-            "style_tags": self.style_tags,
+      
             "session_time": self.session,
             "number_of_output": num_of_output}
         return meta_data_json
 
-    @property
-    def data_file(self):
-        return utils.get_EA_dump_folder_file("AI_RENDER_DATA.json")
+    # @property
+    # def data_file(self):
+    #     return utils.get_EA_dump_folder_file("AI_RENDER_DATA.json")
 
 
     def has_new_job(self):
-      
-        file = shutil.copyfile(
-            self.data_file, utils.get_EA_dump_folder_file("AI_RENDER_DATA_LISTENER.json"))
-        with open(file, 'r') as f:
-            # get dictionary from json file
-            data = json.load(f)
+        # if self.is_thinking:
+        #     return False
 
-        return data["direction"] == "IN"
+
+        # get all files in the folder that has "AI_RENDER_DATA" in file name
+        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
+        # if there is any file, return true
+        if len(files) == 0:
+            return False
+
+        for file in files:
+            file = shutil.copyfile(
+                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("AI_RENDER_DATA_LISTENER.json"))
+            with open(file, 'r') as f:
+                # get dictionary from json file
+                data = json.load(f)
+
+            if data["direction"] == "IN":
+                self.data_file = file
+                return True
+            
+        return False
+                
 
     def initiate_pipeline(self, controlet_model, pipeline_model):
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -187,7 +220,7 @@ class AiConverter:
 
 class App:
     def __init__(self):
-        self.solution = Solution()
+        self.AI = AiConverter()
         self.window = tk.Tk()
         self.window.title(EXE_NAME)
         self.is_thinking = False
@@ -213,12 +246,12 @@ class App:
         self.window.after(1000, self.check_job)
 
     def check_job(self):
-        if not self.is_thinking and self.solution.has_new_job():
+        if not self.is_thinking and self.AI.has_new_job():
             self.is_thinking = True
-            self.talk_bubble.configure(text="Thinking...")
-            self.solution.main()
+            self.talk_bubble.configure(text="Porcessing...")
+            self.AI.main()
             self.is_thinking = False
-            self.talk_bubble.configure(text="Ready to work.")
+            self.talk_bubble.configure(text="Standby.")
             
             logging.info("DONE!")
         self.window.after(1, self.update)

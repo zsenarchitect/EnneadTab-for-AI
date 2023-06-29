@@ -1,23 +1,32 @@
-
-import clear_memory
-import traceback    
-clear_memory.clear()
-import os
-# try:
-# os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
-# except:
-#     print (traceback.format_exc())
-
-import torch#pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-import cv2
-import numpy as np
-from PIL import Image
-
-
-from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
-import time
 import traceback
+
+try:
+    import clear_memory
+    import traceback    
+    clear_memory.clear()
+    import os
+    # try:
+    # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
+    # except:
+    #     print (traceback.format_exc())
+
+    import torch
+
+    import cv2
+    import numpy as np
+    from PIL import Image
+
+
+    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
+    import time
+except:
+
+    error = traceback.format_exc()
+    print (error)
+    with open("{}\error.txt".format(r"C:\Users\szhang\github\EnneadTab-for-AI\output"), "w") as f:
+            f.write(error)
+    import sys
+    sys.exit()
 
 
 import subprocess

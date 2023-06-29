@@ -103,6 +103,7 @@ def initiate_pipeline(canny_image):
         controlnet=controlnet,
         torch_dtype=torch.float16
     )
+
     # change the scheduler
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(
         pipe.scheduler.config)
@@ -124,6 +125,7 @@ def initiate_pipeline(canny_image):
 
 
 def text2image(canny_image, pipe, generator):
+    
     images = pipe(
         "architecture exterior rendering, professional, archdaily.com, japanese architects, peaceful, few people, city center, after rain, dusk, vivid texture and reflection, high resolution, european modern architects, very detailed, natural lighting, award-winning, highest quality, sci-fi, natural material.",
         negative_prompt="cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, blurry, bad anatomy, bad proportions",

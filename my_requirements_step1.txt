@@ -1,26 +1,13 @@
-# pip install -r my_requirements.txt
+# pip install -r my_requirements_step1.txt
 
 
 
 #torch==2.0.1+cu118
 # this is special, need to install manually FIRST!
 # pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # the following two are not needed becasue they will be installed with torch parent package
 # torchvision
 # torchaudio
 
-clr
-pythonnet
-streamlit
-numpy
-pillow
-opencv-contrib-python
-auto_py_to_exe
-
-diffusers
-accelerate
-transformers
-xformers
-controlnet_aux
-clip_interrogator

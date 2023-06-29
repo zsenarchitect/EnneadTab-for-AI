@@ -18,6 +18,7 @@ try:
 
     from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
     import time
+    from playsound import playsound
 except:
 
     error = traceback.format_exc()
@@ -34,17 +35,18 @@ import subprocess
 
 def play_audio(audio=None):
     if audio is None:
-        audio_path = os.path.join(
-            os.path.dirname(__file__), "audio", "end.wav")
+        audio_path = os.path.join(os.path.dirname(__file__), "audio", "default.wav")
     else:
         audio_path = os.path.join(os.path.dirname(__file__), "audio", audio)
-
+    print (audio_path)
     if os.path.isfile(audio_path):
         print("Playing audio: " + audio_path)
     else:
         print("Audio file not found")
         return
 
+    playsound(audio_path)
+    return
     try:
         import clr
 
@@ -54,7 +56,6 @@ def play_audio(audio=None):
         sp.SoundLocation = audio_path
         sp.Play()
     except:
-        print("Error playing sound")
         pass
 
 
@@ -151,14 +152,16 @@ def text2image(canny_image, pipe, generator):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     session = time.strftime("%Y%m%d-%H%M%S")
     for i, image in enumerate(images):
-        image_path = os.path.join(script_dir, 'imgs', 'OUT\\Session_{}'.format(
+        # make sure this folder exists:
+        os.makedirs(os.path.join(script_dir, 'imgs', 'OUT', 'Session_{}'.format(session)),exist_ok=True)
+        image_path = os.path.join(script_dir, 'imgs', 'OUT', 'Session_{}'.format(
             session), 'AI_{}.jpg'.format(i+1))
         image.save(image_path)
 
         clear_memory.clear()
 
     print("AI out")
-    play_audio("finish.wav")
+    play_audio("AI_img_finish.wav")
 
 
 def main():
@@ -173,6 +176,8 @@ def main():
 if __name__ == '__main__':
 
     try:
+        play_audio()
+        play_audio("import_finish.wav")
         main()
     except Exception as e:
 

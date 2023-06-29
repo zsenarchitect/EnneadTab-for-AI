@@ -26,10 +26,6 @@
    "value": false
   },
   {
-   "optionDest": "debug",
-   "value": "imports"
-  },
-  {
    "optionDest": "strip",
    "value": false
   },
@@ -128,6 +124,14 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/dll/avdevice-58.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/.venv/Lib/site-packages/tqdm;tqdm/"
+  },
+  {
+   "optionDest": "copy_metadata",
+   "value": "tqdm"
   }
  ],
  "nonPyinstallerOptions": {

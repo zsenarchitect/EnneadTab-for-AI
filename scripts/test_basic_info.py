@@ -14,7 +14,7 @@ def main():
     print('Name of the current CUDA Device: ', torch.cuda.get_device_name(cuda_id))
 
     import playsound
-    playsound.playsound("C:\\Users\\szhang\\github\\EnneadTab-for-AI\\scripts\\audio\\end.wav", True)
+    playsound.playsound("C:\\Users\\szhang\\github\\EnneadTab-for-AI\\scripts\\audio\\AI_img_finish.wav", True)
 if __name__ == '__main__':
 
     try:

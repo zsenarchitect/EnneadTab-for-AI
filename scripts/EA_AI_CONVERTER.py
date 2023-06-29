@@ -8,6 +8,7 @@ try:
     import tkinter as tk
     import json
     import shutil
+    import pprint
     import logging
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -50,7 +51,16 @@ class AiConverter:
         pass
 
 
-    def play_audio(self, file = os.path.join(os.path.dirname(__file__), "audio", "default.wav")):
+    def play_audio(self, file = None, force_play = False):
+        # check if the username is "szhang"
+        if os.getlogin() != "szhang":
+            if not force_play:
+                return
+        
+        if file is None:
+            file = os.path.join(os.path.dirname(__file__), "audio", "default.wav")
+        else:
+            file = os.path.join(os.path.dirname(__file__), "audio", file)
         playsound(file)
 
     def convert2canny(self, image_path):
@@ -72,7 +82,7 @@ class AiConverter:
         return canny_image
 
     def text2image(self, positive_prompt, negative_prompt, num_of_output):
-        print (self.canny_image)
+        # print (self.canny_image)
         while True:
             try:
                 images = self.pipeline(positive_prompt,
@@ -91,8 +101,8 @@ class AiConverter:
 
                 # Calculate the new size
                 new_size = (int(width*0.75), int(height*0.75))
-                logging.info("The image istoo large, scaling it down to 75%. New size = {}".format(new_size))
-                print ("The image istoo large, scaling it down to 75%. New size = {}".format(new_size))
+                logging.info("The image is too large, scaling it down to 75%. New size = {}".format(new_size))
+                print ("The image is too large, scaling it down to 75%. New size = {}".format(new_size))
                 clear_memory.clear()
                 # Resize the image
                 self.canny_image = self.canny_image.resize(new_size)
@@ -100,8 +110,9 @@ class AiConverter:
 
         # Get the absolute path to the active script
         
-        
-        output_folder = os.makedirs(os.path.join(utils.get_EA_local_dump_folder, 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session)),exist_ok=True)
+        output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session))
+        os.makedirs( output_folder, exist_ok=True)
+        print (output_folder)
         for i, image in enumerate(images):
             # make sure this folder exists:
             image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
@@ -110,7 +121,7 @@ class AiConverter:
             clear_memory.clear()
 
         print("AI out")
-        self.play_audio("AI_img_finish.wav")
+        self.play_audio("AI_img_finish.wav", force_play=True)
 
         print ("TO DO: save the human readable meta data of input in this folder. Include P-promt, N prompt, style_tags, session time and name, number of output.")
         meta_data_json = {
@@ -138,14 +149,14 @@ class AiConverter:
             return False
 
         for file in files:
-            file = shutil.copyfile(
-                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("AI_RENDER_DATA_LISTENER.json"))
-            with open(file, 'r') as f:
+            copy_file = shutil.copyfile(
+                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("temp_data_LISTENER.json"))
+            with open(copy_file, 'r') as f:
                 # get dictionary from json file
                 data = json.load(f)
 
             if data["direction"] == "IN":
-                self.data_file = file
+                self.data_file = utils.get_EA_dump_folder_file(file)
                 return True
             
         return False
@@ -206,9 +217,9 @@ class AiConverter:
 
         data["meta_data"] = meta_data
         data["direction"] = "OUT"
-        data["compute_time"] = time.time() - begin_time
-        logging.info("meta_data = " + meta_data)
-        logging.info("time = {}s".format(data['compute_time']))
+        # data["compute_time"] = float(time.time() - begin_time)
+        logging.info("meta_data = {}".format(pprint.pprint(meta_data)) )
+        # logging.info("time = {}s".format(data['compute_time']))
         with open(self.data_file, 'w') as f:
             # get dictionary from json file
             json.dump(data, f)
@@ -227,6 +238,8 @@ class App:
         self.x = 900
         self.y = 700
 
+        self.begining_time = time.time()
+
         self.window_width = 550
         self.window_height = 120
         # 100x100 size window, location 700, 500. No space between + and numbers
@@ -243,6 +256,10 @@ class App:
         self.window.after(1, self.update)
 
     def update(self):
+        # kill the app if running for more than 20 mins.
+        if time.time() - self.begining_time > 60*20:
+            self.window.destroy()
+            return
         self.window.after(1000, self.check_job)
 
     def check_job(self):

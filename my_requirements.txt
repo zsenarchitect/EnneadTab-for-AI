@@ -1,6 +1,13 @@
 # pip install -r my_requirements.txt
 
 
+
+torch==2.0.1+cu118
+# this is special, need to install manually
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+torchvision
+torchaudio
 diffusers>=0.14.0
 accelerate
 opencv-contrib-python
@@ -13,9 +20,4 @@ controlnet_aux
 clip_interrogator
 clr
 pythonnet
-
-
-
-# torch==2.0.1+cu118
-# this is special, need to install manually
-# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+auto_py_to_exe

@@ -21,3 +21,7 @@ https://huggingface.co/docs/diffusers/v0.16.0/en/api/pipelines/stable_diffusion/
 
 Guide to train my own SD model
 https://betterprogramming.pub/train-your-own-stable-diffusion-model-locally-no-code-needed-36f943825d23
+
+
+python will work fine, but during py2exe some meta data will be not curried over, making exe fail. See this help to include additional meta data copy.
+https://stackoverflow.com/questions/75393856/tqdm-4-27-distribution-was-not-found-error-while-executing-a-exe-file-create

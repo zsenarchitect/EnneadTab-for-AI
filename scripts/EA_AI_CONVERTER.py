@@ -1,5 +1,5 @@
-
 EXE_NAME = u"Ennead_IMAGE_AI"
+
 
 try:
     import traceback
@@ -63,6 +63,32 @@ class AiConverter:
             file = os.path.join(os.path.dirname(__file__), "audio", file)
         playsound(file)
 
+
+    def has_new_job(self):
+        # if self.is_thinking:
+        #     return False
+
+
+        # get all files in the folder that has "AI_RENDER_DATA" in file name
+        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
+        # if there is any file, return true
+        if len(files) == 0:
+            return False
+
+        for file in files:
+            copy_file = shutil.copyfile(
+                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("temp_data_LISTENER.json"))
+            with open(copy_file, 'r') as f:
+                # get dictionary from json file
+                data = json.load(f)
+
+            if data["direction"] == "IN":
+                self.data_file = utils.get_EA_dump_folder_file(file)
+                return True
+            
+        return False
+                
+
     def convert2canny(self, image_path):
         image = Image.open(image_path)
         self.original_image = image
@@ -82,7 +108,62 @@ class AiConverter:
         self.play_audio()
         return canny_image
 
-    def text2image(self, positive_prompt, negative_prompt, num_of_output):
+
+    def initiate_pipeline(self, controlet_model, pipeline_model):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # check availibity
+        logging.info("Checking availibity: Device Name = {}".format(device))
+
+
+        # Making the code device-agnostic
+        generator = torch.Generator(device=device).manual_seed(12345)
+        controlnet = ControlNetModel.from_pretrained(
+            controlet_model,
+            torch_dtype=torch.float16
+        )
+
+
+        # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"  
+        # model_path = pipeline_model
+        # from huggingface_hub import model_info
+        # info = model_info(model_path)
+        # model_base = info.cardData["base_model"]
+        model_base = "runwayml/stable-diffusion-v1-5"
+        print (pipeline_model)
+        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
+            pipeline_model,
+            controlnet=controlnet,
+            torch_dtype=torch.float16
+        )
+
+        # change the scheduler
+        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
+        
+
+        #comment out below two line if want to do default:  load the LoRA weights from the Hub on top of the regular model weights, move the pipeline to the cuda device and run inference:
+        #pipeline.unet.load_attn_procs(pipeline_model, local_files_only = True)
+        """
+        - A path to a *directory* containing model weights saved using [`~ModelMixin.save_config`], e.g.,
+                      `./my_model_directory/`."""
+        #pipeline.to("cuda")
+
+        # enable xformers (optional), requires xformers installation
+        try:
+            pipeline.enable_xformers_memory_efficient_attention()
+        except:
+            logging.info("xformers optimzation not available")
+
+        # cpu offload for memory saving, requires accelerate>=0.17.0
+        pipeline.enable_model_cpu_offload()
+        
+        self.play_audio()
+
+        logging.info("pipeline and generator initiated")
+
+        self.pipeline, self.generator =  pipeline, generator
+
+
+    def text2image(self, model_name, positive_prompt, negative_prompt, num_of_output):
         # print (self.canny_image)
         comment = ""
         while True:
@@ -128,11 +209,7 @@ class AiConverter:
             image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
             image.save(image_path)
 
-        del self.pipeline
-        del self.generator
-        del self.canny_image
-        del self.original_image
-        clear_memory.clear()
+
 
         print("AI out! All images save in folder: {}".format(output_folder))
         self.play_audio("AI_img_finish.wav", force_play=True)
@@ -142,6 +219,7 @@ class AiConverter:
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
             "comments": comment,
+            "model_name": model_name,
             "session_time": self.session,
             "number_of_output": num_of_output}
         
@@ -150,6 +228,15 @@ class AiConverter:
 
             json.dump(meta_data_json, f, indent=4)
 
+
+
+        del self.pipeline
+        del self.generator
+        del self.canny_image
+        del self.original_image
+        clear_memory.clear()
+
+
         return meta_data_json
 
     # @property
@@ -157,82 +244,22 @@ class AiConverter:
     #     return utils.get_EA_dump_folder_file("AI_RENDER_DATA.json")
 
 
-    def has_new_job(self):
-        # if self.is_thinking:
-        #     return False
-
-
-        # get all files in the folder that has "AI_RENDER_DATA" in file name
-        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
-        # if there is any file, return true
-        if len(files) == 0:
-            return False
-
-        for file in files:
-            copy_file = shutil.copyfile(
-                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("temp_data_LISTENER.json"))
-            with open(copy_file, 'r') as f:
-                # get dictionary from json file
-                data = json.load(f)
-
-            if data["direction"] == "IN":
-                self.data_file = utils.get_EA_dump_folder_file(file)
-                return True
-            
-        return False
-                
-
-    def initiate_pipeline(self, controlet_model, pipeline_model):
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # check availibity
-        logging.info("Checking availibity: Device Name = {}".format(device))
-
-
-        # Making the code device-agnostic
-        generator = torch.Generator(device=device).manual_seed(12345)
-        controlnet = ControlNetModel.from_pretrained(
-            controlet_model,
-            torch_dtype=torch.float16
-        )
-        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
-            pipeline_model,
-            controlnet=controlnet,
-            torch_dtype=torch.float16
-        )
-
-        # change the scheduler
-        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
-            pipeline.scheduler.config)
-
-
-        # enable xformers (optional), requires xformers installation
-        try:
-            pipeline.enable_xformers_memory_efficient_attention()
-        except:
-            logging.info("xformers optimzation not available")
-
-        # cpu offload for memory saving, requires accelerate>=0.17.0
-        pipeline.enable_model_cpu_offload()
-        
-        self.play_audio()
-
-        logging.info("pipeline and generator initiated")
-
-        self.pipeline, self.generator =  pipeline, generator
 
 
     @utils.try_catch_error
     def main(self):
         print ("\n\n\nStarting a new job:")
         begin_time = time.time()
-        with open(self.data_file, 'r') as f:
+        with open(self.data_file, mode='r') as f:
             # get dictionary from json file
             data = json.load(f)
 
         self.session = time.strftime("%Y%m%d-%H%M%S")
         self.canny_image = self.convert2canny(data.get("input_image"))
         self.initiate_pipeline(data.get("controlnet_model"), data.get("pipeline_model"))
-        meta_data = self.text2image(data.get("positive_prompt"), data.get("negative_prompt"), data.get("number_of_output"))
+        meta_data = self.text2image(data.get("pipeline_model"), 
+                                    data.get("positive_prompt"), 
+                                    data.get("negative_prompt"), data.get("number_of_output"))
         
 
         data["meta_data"] = meta_data
@@ -240,7 +267,7 @@ class AiConverter:
         # data["compute_time"] = float(time.time() - begin_time)
         logging.info("meta_data = {}".format(pprint.pprint(meta_data)) )
         # logging.info("time = {}s".format(data['compute_time']))
-        with open(self.data_file, 'w') as f:
+        with open(self.data_file, mode='w') as f:
             # get dictionary from json file
             json.dump(data, f)
 
@@ -307,6 +334,8 @@ def is_another_app_running():
     for window in pyautogui.getAllWindows():
         # print window.title
         if window.title == EXE_NAME:
+            return True
+        if window.title == "EA_AI_CONVERTER":
             return True
     return False
 

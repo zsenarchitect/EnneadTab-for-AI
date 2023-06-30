@@ -120,18 +120,24 @@ class AiConverter:
 
         image_path = os.path.join(output_folder, 'Original.jpg')
         self.original_image.save(image_path)
+        image_path = os.path.join(output_folder, 'Abstracted.jpg')
+        self.canny_image.save(image_path)
 
         for i, image in enumerate(images):
             # make sure this folder exists:
             image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
             image.save(image_path)
 
-            clear_memory.clear()
+        del self.pipeline
+        del self.generator
+        del self.canny_image
+        del self.original_image
+        clear_memory.clear()
 
-        print("AI out")
+        print("AI out! All images save in folder: {}".format(output_folder))
         self.play_audio("AI_img_finish.wav", force_play=True)
 
-        print ("TO DO: save the human readable meta data of input in this folder. Include P-promt, N prompt, style_tags, session time and name, number of output.")
+        # print ("TO DO: save the human readable meta data of input in this folder. Include P-promt, N prompt, style_tags, session time and name, number of output.")
         meta_data_json = {
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
@@ -217,7 +223,7 @@ class AiConverter:
 
     @utils.try_catch_error
     def main(self):
-
+        print ("\n\n\nStarting a new job:")
         begin_time = time.time()
         with open(self.data_file, 'r') as f:
             # get dictionary from json file
@@ -245,6 +251,11 @@ class AiConverter:
 
 class App:
     def __init__(self):
+
+        print ("Welcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
+        print ("Feedbacks are highly appreciated!")
+        print ("Please report any bugs or issues to: Sen Zhang.")
+        print ("\nEnjoy!")
         self.AI = AiConverter()
         self.window = tk.Tk()
         self.window.title(EXE_NAME)

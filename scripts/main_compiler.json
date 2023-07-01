@@ -18,6 +18,10 @@
    "value": true
   },
   {
+   "optionDest": "icon_file",
+   "value": "C:/Users/szhang/github/EnneadTab-for-AI/scripts/imgs/AI render.ico"
+  },
+  {
    "optionDest": "ascii",
    "value": false
   },

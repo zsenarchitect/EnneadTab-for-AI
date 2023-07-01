@@ -1,3 +1,15 @@
+"""
+auto minimize tkinter and terminal
+
+allow option to use default pipeline instead of canny.
+
+see team self mesg for upscaler and pipeline args 'from safetensor'
+
+rhino new UI trigger from a button on main UI add viewer window to pick image from recent job and upscaler to desired resolution. this will be a separate pair of job-json file. and seperate app. for performance and workflow reason. 
+"""
+
+
+
 EXE_NAME = u"Ennead_IMAGE_AI"
 
 

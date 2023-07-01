@@ -47,8 +47,6 @@ upscaled_image.save("upsampled_cat.png")"""
 
 
 
-from output.EA_AI_CONVERTER.transformers.commands import user
-
 
 EXE_NAME = u"Ennead_IMAGE_AI_SCALER"
 
@@ -101,7 +99,7 @@ except:
 class AiScaler:
     @utils.try_catch_error
     def __init__(self):
-        pass
+        self.initiate_pipeline()
 
 
     def play_audio(self, file = None, force_play = False):
@@ -138,6 +136,8 @@ class AiScaler:
             if data["direction"] == "IN":
                 self.data_file = utils.get_EA_dump_folder_file(file)
                 return True
+            else:
+                os.remove(utils.get_EA_dump_folder_file(file))
             
         return False
                 
@@ -193,8 +193,9 @@ class AiScaler:
       
         positive_prompt = user_data.get("positive_prompt")
         negative_prompt = user_data.get("negative_prompt")
-        num_of_output = user_data.get("num_of_output")
+        number_of_output = user_data.get("number_of_output")
         comment = ""
+        print ("Expecting {} upscale images".format(number_of_output))
         while True:
             try:
                 upscale_images = self.scaler_pipeline(prompt = positive_prompt, 
@@ -202,8 +203,9 @@ class AiScaler:
                                                     num_inference_steps=20,
                                                     generator=self.generator,
                                                     image=user_image,
-                                                    num_images_per_prompt=num_of_output
+                                                    num_images_per_prompt=number_of_output
                                                     ).images
+                print ("Internal Resolution = {} -> {}".format(user_image.size,upscale_images[0].size))
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))
@@ -211,8 +213,9 @@ class AiScaler:
                 width, height = user_image.size
 
                 # Calculate the new size
+                old_size = (width, height)
                 new_size = (int(width*0.75), int(height*0.75))
-                comment = "\nThe image is too large, scaling it down to 75%. New size = {}".format(new_size)
+                comment = "\nThe image is too large, scaling it down to 75%. {} -> {}".format(old_size, new_size)
                 logging.info(comment)
                 print (comment)
                 comment += comment
@@ -220,7 +223,7 @@ class AiScaler:
                 # Resize the image
                 user_image = user_image.resize(new_size)
                 
-
+        
         # Get the absolute path to the active script
         
         output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}_Upscale'.format(self.session))
@@ -239,6 +242,8 @@ class AiScaler:
 
             # make sure this folder exists:
             image_path = os.path.join(output_folder, 'AI_Upscale_{}.jpg'.format(i+1))
+
+            raw_image = user_image.resize(user_data["desired_resolution"])
             raw_image.save(image_path)
 
 
@@ -252,7 +257,7 @@ class AiScaler:
             "comments": comment,
             "desired_resolution":user_data.get("desired_resolution", [0,0]),
             "session_time": self.session,
-            "number_of_output": num_of_output}
+            "number_of_output": number_of_output}
         
         # save the meta data in the same folder as the images
         with open(os.path.join(output_folder, "EnneadTab AI Meta Data.json"), "w") as f:
@@ -261,8 +266,8 @@ class AiScaler:
 
 
 
-        del self.scaler_pipeline
-        del self.generator
+        # del self.scaler_pipeline
+        # del self.generator
         del upscale_images
         del user_image
         clear_memory.clear()
@@ -282,8 +287,8 @@ class AiScaler:
             data = json.load(f)
 
         self.session = time.strftime("%Y%m%d-%H%M%S")
-        self.canny_image = self.convert2canny(data.get("input_image"))
-        self.initiate_pipeline()
+
+ 
         meta_data = self.text2image(data)
         
 

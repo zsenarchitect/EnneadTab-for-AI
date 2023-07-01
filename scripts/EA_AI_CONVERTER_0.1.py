@@ -91,7 +91,17 @@ except:
 class AiConverter:
     @utils.try_catch_error
     def __init__(self):
-        pass
+        self.last_pipeline_model = None
+
+
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # check availibity
+        logging.info("Checking availibity: Device Name = {}".format(device))
+
+
+        # Making the code device-agnostic
+        self.generator = torch.Generator(device=device).manual_seed(12345)
+
 
 
     def play_audio(self, file = None, force_play = False):
@@ -155,13 +165,11 @@ class AiConverter:
 
 
     def initiate_pipeline(self, controlet_model, pipeline_model):
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # check availibity
-        logging.info("Checking availibity: Device Name = {}".format(device))
+        if pipeline_model == self.last_pipeline_model:
+            return
+        
+        print ("Initiating new pipeline model:{}".format(pipeline_model))
 
-
-        # Making the code device-agnostic
-        generator = torch.Generator(device=device).manual_seed(12345)
         controlnet = ControlNetModel.from_pretrained(
             controlet_model,
             torch_dtype=torch.float16
@@ -173,8 +181,8 @@ class AiConverter:
         # from huggingface_hub import model_info
         # info = model_info(model_path)
         # model_base = info.cardData["base_model"]
-        model_base = "runwayml/stable-diffusion-v1-5"
-        print (pipeline_model)
+        # model_base = "runwayml/stable-diffusion-v1-5"
+
         pipeline = StableDiffusionControlNetPipeline.from_pretrained(
             pipeline_model,
             controlnet=controlnet,
@@ -207,25 +215,26 @@ class AiConverter:
 
         logging.info("pipeline and generator initiated")
 
-        self.pipeline, self.generator =  pipeline, generator
+        self.pipeline =  pipeline
 
 
     def text2image(self, user_data):
         positive_prompt = user_data.get("positive_prompt")
         negative_prompt = user_data.get("negative_prompt")
-        num_of_output = user_data.get("num_of_output")
+        number_of_output = user_data.get("number_of_output")
         #print (self.canny_image)
         comment = ""
         while True:
+
             try:
+
                 raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
                                         num_inference_steps=20,
                                         generator=self.generator,
                                         image=self.canny_image,
-                                        num_images_per_prompt=num_of_output,
-                                        controlnet_conditioning_scale=0.5
-                    ).images
+                                        num_images_per_prompt=number_of_output,
+                                        controlnet_conditioning_scale=0.5).images
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))
@@ -249,9 +258,9 @@ class AiConverter:
         os.makedirs( output_folder, exist_ok=True)
         print (output_folder)
 
-        image_path = os.path.join(output_folder, 'Original.jpg')
-        self.original_image.save(image_path)
-        image_path = os.path.join(output_folder, 'Abstracted.jpg')
+        # image_path = os.path.join(output_folder, 'Original.jpg')
+        # self.original_image.save(image_path)
+        image_path = os.path.join(output_folder, 'Abstracted.jpeg')
         self.canny_image.save(image_path)
 
 
@@ -261,7 +270,7 @@ class AiConverter:
         for i, raw_image in enumerate(raw_images):
 
             # make sure this folder exists:
-            image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
+            image_path = os.path.join(output_folder, 'AI_{}.jpeg'.format(i+1))
             raw_image.save(image_path)
 
 
@@ -277,7 +286,7 @@ class AiConverter:
             "comments": comment,
             "model_name": user_data.get("model_name"),
             "session_time": self.session,
-            "number_of_output": num_of_output,
+            "number_of_output": number_of_output,
             "desired_resolution":user_data.get("desired_resolution", [0,0])}
         
         # save the meta data in the same folder as the images
@@ -286,9 +295,9 @@ class AiConverter:
             json.dump(meta_data_json, f, indent=4)
 
 
-
-        del self.pipeline
-        del self.generator
+        self.last_pipeline_model = user_data.get("pipeline_model")
+        # del self.pipeline
+        # del self.generator
         del self.canny_image
         del self.original_image
         del raw_images

@@ -1,3 +1,10 @@
+"""make the scaler a seperate app but when in one app it keep hiting GPU capcaity.
+
+Also, this mean the operation can a s standalone for Rhino.
+User will generate 5 options, and pick one to upscale with additoin edit to prompts."""
+
+
+
 """
 auto minimize tkinter and terminal
 
@@ -40,7 +47,10 @@ upscaled_image.save("upsampled_cat.png")"""
 
 
 
-EXE_NAME = u"Ennead_IMAGE_AI"
+from output.EA_AI_CONVERTER.transformers.commands import user
+
+
+EXE_NAME = u"Ennead_IMAGE_AI_SCALER"
 
 
 try:
@@ -55,7 +65,7 @@ try:
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         filemode='w',
-                        filename=utils.get_EA_dump_folder_file("{}_log.log".format(EXE_NAME)))
+                        filename=utils.get_EA_dump_folder_file("{}_scaler_log.log".format(EXE_NAME)))
 
     import clear_memory
  
@@ -82,13 +92,13 @@ except:
 
     error = traceback.format_exc()
     print(error)
-    with open(utils.get_EA_dump_folder_file("error.txt"), "w") as f:
+    with open(utils.get_EA_dump_folder_file("scaler_error.txt"), "w") as f:
         f.write(error)
     import sys
     sys.exit()
 
 
-class AiConverter:
+class AiScaler:
     @utils.try_catch_error
     def __init__(self):
         pass
@@ -112,15 +122,15 @@ class AiConverter:
         #     return False
 
 
-        # get all files in the folder that has "AI_RENDER_DATA" in file name
-        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
+        # get all files in the folder that has "AI_RENDER_SCALER" in file name
+        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_SCALER" in f]
         # if there is any file, return true
         if len(files) == 0:
             return False
 
         for file in files:
             copy_file = shutil.copyfile(
-                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("temp_data_LISTENER.json"))
+                utils.get_EA_dump_folder_file(file), utils.get_EA_dump_folder_file("temp_scaler_data_LISTENER.json"))
             with open(copy_file, 'r') as f:
                 # get dictionary from json file
                 data = json.load(f)
@@ -132,55 +142,23 @@ class AiConverter:
         return False
                 
 
-    def convert2canny(self, image_path):
-        image = Image.open(image_path)
-        self.original_image = image
-        image = np.array(image)
-
-        low_threshold = 100
-        high_threshold = 200
-
-        image = cv2.Canny(image, low_threshold, high_threshold)
-        image = image[:, :, None]
-        image = np.concatenate([image, image, image], axis=2)
-        canny_image = Image.fromarray(image)
-        image_path = utils.get_EA_dump_folder_file("AI_canny.jpg")
-        canny_image.save(image_path)
-
-        logging.info("Image saved")
-        self.play_audio()
-        return canny_image
 
 
-    def initiate_pipeline(self, controlet_model, pipeline_model):
+    def initiate_pipeline(self):
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         # check availibity
         logging.info("Checking availibity: Device Name = {}".format(device))
 
 
         # Making the code device-agnostic
-        generator = torch.Generator(device=device).manual_seed(12345)
-        controlnet = ControlNetModel.from_pretrained(
-            controlet_model,
-            torch_dtype=torch.float16
+        generator = torch.Generator(device=device).manual_seed(22345)
+
+
+        scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
+        pipeline = StableDiffusionUpscalePipeline.from_pretrained(
+            scaler_model_id, revision="fp16", torch_dtype=torch.float16
         )
-
-
-        # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"  
-        # model_path = pipeline_model
-        # from huggingface_hub import model_info
-        # info = model_info(model_path)
-        # model_base = info.cardData["base_model"]
-        model_base = "runwayml/stable-diffusion-v1-5"
-        print (pipeline_model)
-        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
-            pipeline_model,
-            controlnet=controlnet,
-            torch_dtype=torch.float16
-        )
-
-        # change the scheduler
-        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
+        pipeline = pipeline.to("cuda")
         
 
         #comment out below two line if want to do default:  load the LoRA weights from the Hub on top of the regular model weights, move the pipeline to the cuda device and run inference:
@@ -205,27 +183,32 @@ class AiConverter:
 
         logging.info("pipeline and generator initiated")
 
-        self.pipeline, self.generator =  pipeline, generator
+        self.scaler_pipeline = pipeline
+        self.generator =  generator
 
 
-    def text2image(self, model_name, positive_prompt, negative_prompt, num_of_output):
+    def text2image(self, user_data):
         # print (self.canny_image)
+        user_image = Image.open(user_data.get("input_image"))
+      
+        positive_prompt = user_data.get("positive_prompt")
+        negative_prompt = user_data.get("negative_prompt")
+        num_of_output = user_data.get("num_of_output")
         comment = ""
         while True:
             try:
-                images = self.pipeline(positive_prompt,
-                                        negative_prompt = negative_prompt, 
-                                        num_inference_steps=20,
-                                        generator=self.generator,
-                                        image=self.canny_image,
-                                        num_images_per_prompt=num_of_output,
-                                        controlnet_conditioning_scale=0.5
-                    ).images
+                upscale_images = self.scaler_pipeline(prompt = positive_prompt, 
+                                                      negative_prompt = negative_prompt, 
+                                                    num_inference_steps=20,
+                                                    generator=self.generator,
+                                                    image=user_image,
+                                                    num_images_per_prompt=num_of_output
+                                                    ).images
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))
                 print (e)
-                width, height = self.canny_image.size
+                width, height = user_image.size
 
                 # Calculate the new size
                 new_size = (int(width*0.75), int(height*0.75))
@@ -235,48 +218,28 @@ class AiConverter:
                 comment += comment
                 clear_memory.clear()
                 # Resize the image
-                self.canny_image = self.canny_image.resize(new_size)
+                user_image = user_image.resize(new_size)
                 
 
         # Get the absolute path to the active script
         
-        output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session))
+        output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}_Upscale'.format(self.session))
         os.makedirs( output_folder, exist_ok=True)
         print (output_folder)
 
         image_path = os.path.join(output_folder, 'Original.jpg')
-        self.original_image.save(image_path)
-        image_path = os.path.join(output_folder, 'Abstracted.jpg')
-        self.canny_image.save(image_path)
+        user_image.save(image_path)
 
 
-        del self.pipeline
-        scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
-        pipeline = StableDiffusionUpscalePipeline.from_pretrained(
-            scaler_model_id, revision="fp16", torch_dtype=torch.float16
-        )
-        pipeline = pipeline.to("cuda")
-        self.scaler_pipeline = pipeline
 
-        for i, raw_image in enumerate(images):
+
+        for i, raw_image in enumerate(upscale_images):
+
+           
 
             # make sure this folder exists:
-            image_path = os.path.join(output_folder, 'AI_{}.jpg'.format(i+1))
+            image_path = os.path.join(output_folder, 'AI_Upscale_{}.jpg'.format(i+1))
             raw_image.save(image_path)
-
-
-            upscale_images = self.scaler_pipeline(prompt = positive_prompt,negative_prompt = negative_prompt, 
-                                        num_inference_steps=20,
-                                        generator=self.generator,
-                                        image=raw_image,
-                                        num_images_per_prompt=num_of_output
-                                        ).images
-            
-            for j, raw_image in enumerate(upscale_images):
-
-                # make sure this folder exists:
-                image_path = os.path.join(output_folder, 'AI_{}_Upscale_{}.jpg'.format(i+1, j+1))
-                raw_image.save(image_path)
 
 
         print("AI out! All images save in folder: {}".format(output_folder))
@@ -287,7 +250,7 @@ class AiConverter:
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
             "comments": comment,
-            "model_name": model_name,
+            "desired_resolution":user_data.get("desired_resolution", [0,0]),
             "session_time": self.session,
             "number_of_output": num_of_output}
         
@@ -300,16 +263,12 @@ class AiConverter:
 
         del self.scaler_pipeline
         del self.generator
-        del self.canny_image
-        del self.original_image
+        del upscale_images
+        del user_image
         clear_memory.clear()
 
 
         return meta_data_json
-
-    # @property
-    # def data_file(self):
-    #     return utils.get_EA_dump_folder_file("AI_RENDER_DATA.json")
 
 
 
@@ -324,10 +283,8 @@ class AiConverter:
 
         self.session = time.strftime("%Y%m%d-%H%M%S")
         self.canny_image = self.convert2canny(data.get("input_image"))
-        self.initiate_pipeline(data.get("controlnet_model"), data.get("pipeline_model"))
-        meta_data = self.text2image(data.get("pipeline_model"), 
-                                    data.get("positive_prompt"), 
-                                    data.get("negative_prompt"), data.get("number_of_output"))
+        self.initiate_pipeline()
+        meta_data = self.text2image(data)
         
 
         data["meta_data"] = meta_data
@@ -335,6 +292,7 @@ class AiConverter:
         # data["compute_time"] = float(time.time() - begin_time)
         logging.info("meta_data = {}".format(pprint.pprint(meta_data)) )
         # logging.info("time = {}s".format(data['compute_time']))
+        print ("Job finished! Time elapsed: {}s".format(time.time() - begin_time))
         with open(self.data_file, mode='w') as f:
             # get dictionary from json file
             json.dump(data, f)
@@ -351,25 +309,26 @@ class App:
         print ("Feedbacks are highly appreciated!")
         print ("Please report any bugs or issues to: Sen Zhang.")
         
-        self.AI = AiConverter()
+        self.AI = AiScaler()
         self.window = tk.Tk()
         self.window.iconify()
         self.window.title(EXE_NAME)
         self.is_thinking = False
         self.x = 900
-        self.y = 700
+        self.y = 300
+
 
         self.begining_time = time.time()
 
-        self.window_width = 550
-        self.window_height = 120
+        self.window_width = 650
+        self.window_height = 300
         # 100x100 size window, location 700, 500. No space between + and numbers
         self.window.geometry("{}x{}+{}+{}".format(self.window_width,
                                                   self.window_height,
                                                   self.x,
                                                   self.y))
 
-        self.talk_bubble = tk.Label(self.window, text="EnneadTab AI is happy to help!", font=(
+        self.talk_bubble = tk.Label(self.window, text="EnneadTab Scaler AI is happy to help!", font=(
             "Comic Sans MS", 18), borderwidth=3, relief="solid")
         # pady ====> pad in Y direction
         self.talk_bubble.pack(pady=15)

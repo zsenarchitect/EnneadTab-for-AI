@@ -30,5 +30,8 @@ def try_catch_error(func):
                 f.write(error)
             os.startfile(error_file)
 
+            import sys
+            sys.exit()
+
 
     return wrapper

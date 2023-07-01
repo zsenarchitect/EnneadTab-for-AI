@@ -81,7 +81,7 @@ try:
     print (PIL.__version__)
     from PIL import Image
 
-    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler,StableDiffusionUpscalePipeline
+    from diffusers import StableDiffusionUpscalePipeline
     import time
     from playsound import playsound
     import pyautogui
@@ -156,7 +156,7 @@ class AiScaler:
 
         scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
         pipeline = StableDiffusionUpscalePipeline.from_pretrained(
-            scaler_model_id, revision="fp16", torch_dtype=torch.float16
+            scaler_model_id,  torch_dtype=torch.float16
         )
         pipeline = pipeline.to("cuda")
         
@@ -200,8 +200,7 @@ class AiScaler:
             try:
                 upscale_images = self.scaler_pipeline(prompt = positive_prompt, 
                                                       negative_prompt = negative_prompt, 
-                                                    num_inference_steps=20,
-                                                    generator=self.generator,
+                                                   
                                                     image=user_image,
                                                     num_images_per_prompt=number_of_output
                                                     ).images
@@ -243,7 +242,7 @@ class AiScaler:
             # make sure this folder exists:
             image_path = os.path.join(output_folder, 'AI_Upscale_{}.jpg'.format(i+1))
 
-            raw_image = user_image.resize(user_data["desired_resolution"])
+            raw_image = raw_image.resize(user_data["desired_resolution"])
             raw_image.save(image_path)
 
 

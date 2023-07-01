@@ -91,12 +91,7 @@ except:
 class AiConverter:
     @utils.try_catch_error
     def __init__(self):
-        scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
-        pipeline = StableDiffusionUpscalePipeline.from_pretrained(
-            scaler_model_id, revision="fp16", torch_dtype=torch.float16
-        )
-        pipeline = pipeline.to("cuda")
-        self.scaler_pipeline = pipeline
+        pass
 
 
     def play_audio(self, file = None, force_play = False):
@@ -254,6 +249,15 @@ class AiConverter:
         image_path = os.path.join(output_folder, 'Abstracted.jpg')
         self.canny_image.save(image_path)
 
+
+        del self.pipeline
+        scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
+        pipeline = StableDiffusionUpscalePipeline.from_pretrained(
+            scaler_model_id, revision="fp16", torch_dtype=torch.float16
+        )
+        pipeline = pipeline.to("cuda")
+        self.scaler_pipeline = pipeline
+
         for i, raw_image in enumerate(images):
 
             # make sure this folder exists:
@@ -294,7 +298,7 @@ class AiConverter:
 
 
 
-        del self.pipeline
+        del self.scaler_pipeline
         del self.generator
         del self.canny_image
         del self.original_image
@@ -346,9 +350,10 @@ class App:
         print ("Welcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
         print ("Feedbacks are highly appreciated!")
         print ("Please report any bugs or issues to: Sen Zhang.")
-        print ("\nEnjoy!")
+        
         self.AI = AiConverter()
         self.window = tk.Tk()
+        self.window.iconify()
         self.window.title(EXE_NAME)
         self.is_thinking = False
         self.x = 900
@@ -391,6 +396,7 @@ class App:
 
     def run(self):
         print ("\n\nThe app is up and running!")
+        print ("Enjoy!")
         self.window.mainloop()
 
 def is_another_app_running():

@@ -1,5 +1,7 @@
 # EnneadTab-for-AI
 
+This is a working-in-progress project that will evetually intergrated to the EnneadTab for Rhino and Revit.
+
 
 
 - How to activate:

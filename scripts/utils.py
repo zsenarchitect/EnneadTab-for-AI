@@ -1,5 +1,6 @@
 import os
 import traceback
+import subprocess
 
 def get_EA_local_dump_folder():
     return "{}\Documents\EnneadTab Settings\Local Copy Dump".format(os.environ["USERPROFILE"])
@@ -8,6 +9,35 @@ def get_EA_dump_folder_file(file_name):
     """include extension"""
     return "{}\{}".format(get_EA_local_dump_folder(), file_name)
 
+def toast(main_text = "", sub_text = ""):
+    """
+    :param main_text:
+    :param sub_text:
+    :return:
+    """
+
+    icon = os.path.dirname(os.path.realpath(__file__)) + "\\imgs\\ai_brain.png"
+    
+    def get_toaster():
+        """Return full file path of the toast binary utility."""
+        return r"L:\4b_Applied Computing\03_Rhino\12_EnneadTab for Rhino\Source Codes\lib\EnneadTab\EXE\Ennead_Toaster.exe"
+
+
+
+    app_name = "EnneadTab For AI"
+
+
+    # build the toast
+    toast_args = r'"{}"'.format(get_toaster())
+    toast_args += r' --app-id "{}"'.format(app_name)
+    toast_args += r' --title "{}"'.format(main_text)
+    toast_args += r' --message "{}"'.format(sub_text)
+    toast_args += r' --icon "{}"'.format(icon)
+    toast_args += r' --audio "default"'
+ 
+
+    # send the toast now
+    subprocess.Popen(toast_args, shell = True)
 
 def try_catch_error(func):
 
@@ -35,3 +65,6 @@ def try_catch_error(func):
 
 
     return wrapper
+
+if __name__ == "__main__":
+    toast(main_text="test", sub_text="test")

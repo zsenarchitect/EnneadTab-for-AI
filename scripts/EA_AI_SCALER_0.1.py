@@ -271,7 +271,6 @@ class AiScaler:
         del user_image
         clear_memory.clear()
 
-
         return meta_data_json
 
 
@@ -296,7 +295,9 @@ class AiScaler:
         # data["compute_time"] = float(time.time() - begin_time)
         logging.info("meta_data = {}".format(pprint.pprint(meta_data)) )
         # logging.info("time = {}s".format(data['compute_time']))
-        print ("Job finished! Time elapsed: {}s".format(time.time() - begin_time))
+        used_time_note = "{}s".format(time.time() - begin_time)
+        print ("Job finished! Time elapsed: {}".format(used_time_note))
+        utils.toast(main_text="Rendering Upscale Job Done!", sub_text= "Job Time = {}".format(used_time_note))
         with open(self.data_file, mode='w') as f:
             # get dictionary from json file
             json.dump(data, f)

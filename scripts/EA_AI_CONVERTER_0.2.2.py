@@ -305,7 +305,7 @@ class AiConverter:
             "positive_prompt": positive_prompt, 
             "negative_prompt": negative_prompt,
             "comments": comment,
-            "model_name": user_data.get("model_name"),
+            "model_name": user_data.get("pipeline_model"),
             "session_time": self.session,
             "number_of_output": number_of_output,
             "desired_resolution":user_data.get("desired_resolution", [0,0])}

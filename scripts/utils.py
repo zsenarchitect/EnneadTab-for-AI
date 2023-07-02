@@ -66,5 +66,16 @@ def try_catch_error(func):
 
     return wrapper
 
+
+
+def random_joke():
+    import random
+    with open('L:\\4b_Applied Computing\\03_Rhino\\12_EnneadTab for Rhino\\Source Codes\\lib\\EnneadTab\\FUN\_loading_screen_message.txt', "r") as f:
+        lines = f.readlines()
+    random.shuffle(lines)
+    return lines[0].replace("\n", "")
+
+
+
 if __name__ == "__main__":
     toast(main_text="test", sub_text="test")

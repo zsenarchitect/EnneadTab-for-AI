@@ -39,7 +39,7 @@ if is_another_app_running():
 
 
 
-
+print ("EnneadTab Render Ai is starting, please DO NOT CLOSE ME!!!!!!!!")
 
 try:
     import traceback
@@ -54,16 +54,18 @@ try:
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         filemode='w',
                         filename=utils.get_EA_dump_folder_file("{}_converter_log.log".format(EXE_NAME)))
-
+    print (utils.random_joke())
     import clear_memory
  
     clear_memory.clear()
+    print (utils.random_joke())
     # try:
     # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
     # except:
     #     print (traceback.format_exc())
 
     import torch
+    print (utils.random_joke())
 
     import cv2
     import numpy as np
@@ -72,10 +74,11 @@ try:
     from PIL import Image
 
     from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
+    print (utils.random_joke())
     import time
     from playsound import playsound
     import pyautogui
-    print("Loadding Finish.")
+    print("Loading Finish.")
 except:
 
     error = traceback.format_exc()
@@ -274,7 +277,7 @@ class AiConverter:
 
 
 
-        print("AI out! All images save in folder: {}".format(output_folder))
+
         self.play_audio("AI_img_finish.wav", force_play=True)
 
         # print ("TO DO: save the human readable meta data of input in this folder. Include P-promt, N prompt, style_tags, session time and name, number of output.")
@@ -302,6 +305,11 @@ class AiConverter:
         clear_memory.clear()
 
         
+        
+        logging.info("meta_data = {}".format(pprint.pprint(meta_data_json)))
+        print("AI out! All images save in folder: {}".format(output_folder))
+
+        
         return meta_data_json
 
 
@@ -324,7 +332,7 @@ class AiConverter:
         data["meta_data"] = meta_data
         data["direction"] = "OUT"
         # data["compute_time"] = float(time.time() - begin_time)
-        logging.info("meta_data = {}".format(pprint.pprint(meta_data)) )
+        
         # logging.info("time = {}s".format(data['compute_time']))
         used_time_note = "{}s".format(time.time() - begin_time)
         print ("Job finished! Time elapsed: {}".format(used_time_note))
@@ -341,7 +349,7 @@ class AiConverter:
 class App:
     def __init__(self):
 
-        print ("Welcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
+        print ("\n\nWelcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
         print ("Feedbacks are highly appreciated!")
         print ("Please report any bugs or issues to: Sen Zhang.")
         
@@ -375,8 +383,7 @@ class App:
         if time.time() - self.begining_time > 60*30:
             self.window.destroy()
             return
-        if is_another_app_running():
-            return
+        
         self.window.after(1000, self.check_job)
 
     def check_job(self):
@@ -402,7 +409,8 @@ class App:
 
 @utils.try_catch_error
 def main():
-
+    if is_another_app_running():
+        return
     
    
     app = App()

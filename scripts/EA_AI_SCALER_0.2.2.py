@@ -4,6 +4,7 @@ see how to hook diffusion 2-1
  that has bigger resolution for base model
 maybe can work with x4 upscaler better.
 """
+
 import pyautogui
 
 EXE_NAME = u"Ennead_IMAGE_AI_SCALER"
@@ -15,6 +16,7 @@ def is_another_app_running():
     for window in pyautogui.getAllWindows():
         # print window.title
         if window.title == EXE_NAME:
+            
             return True
         # if window.title == "EA_AI_CONVERTER":
         #     return True
@@ -26,6 +28,7 @@ if is_another_app_running():
     import sys
     sys.exit()
 
+print ("EnneadTab UpScaler Ai is starting, please DO NOT CLOSE ME!!!!!!!!")
 try:
     import traceback
     import os
@@ -40,15 +43,18 @@ try:
                         filemode='w',
                         filename=utils.get_EA_dump_folder_file("{}_scaler_log.log".format(EXE_NAME)))
 
+    print (utils.random_joke())
     import clear_memory
 
     clear_memory.clear()
+    print (utils.random_joke())
     # try:
     # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
     # except:
     #     print (traceback.format_exc())
 
     import torch
+    print (utils.random_joke())
 
     import cv2
     import numpy as np
@@ -58,10 +64,11 @@ try:
     from PIL import Image
 
     from diffusers import StableDiffusionUpscalePipeline
+    print (utils.random_joke())
     import time
     from playsound import playsound
     import pyautogui
-    print("Loadding Finish.")
+    print("Loading Finish.")
 except:
 
     error = traceback.format_exc()
@@ -232,6 +239,10 @@ class AiScaler:
         del user_image
         clear_memory.clear()
 
+
+        logging.info("meta_data = {}".format(pprint.pprint(meta_data_json)))
+        print("AI out! All images save in folder: {}".format(output_folder))
+
         return meta_data_json
 
     @utils.try_catch_error
@@ -249,7 +260,7 @@ class AiScaler:
         data["meta_data"] = meta_data
         data["direction"] = "OUT"
         # data["compute_time"] = float(time.time() - begin_time)
-        logging.info("meta_data = {}".format(pprint.pprint(meta_data)))
+        
         # logging.info("time = {}s".format(data['compute_time']))
         used_time_note = "{}s".format(time.time() - begin_time)
         print("Job finished! Time elapsed: {}".format(used_time_note))
@@ -263,7 +274,7 @@ class AiScaler:
 class App:
     def __init__(self):
 
-        print("Welcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
+        print("\n\nWelcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
         print("Feedbacks are highly appreciated!")
         print("Please report any bugs or issues to: Sen Zhang.")
 
@@ -297,8 +308,7 @@ class App:
         if time.time() - self.begining_time > 60*30:
             self.window.destroy()
             return
-        if is_another_app_running():
-            return
+
         self.window.after(1000, self.check_job)
 
     def check_job(self):
@@ -326,7 +336,8 @@ class App:
 
 @utils.try_catch_error
 def main():
-
+    if is_another_app_running():
+        return
 
     app = App()
     app.run()

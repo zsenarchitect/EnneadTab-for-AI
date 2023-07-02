@@ -18,19 +18,39 @@ import argparse
 from playsound import playsound
 import torch
 import os
+import traceback
+import time
 
 from diffusers.pipelines.stable_diffusion.convert_from_ckpt import download_from_original_stable_diffusion_ckpt
 
 def main():
     source_folder = "S:\SD-Model\source"
     dump_folder = "S:\SD-Model"
-    files = [file for file in os.listdir(source_folder ) if file.endswith(".ckpt")]
-    for file in files:
+    files = [file for file in os.listdir(source_folder ) 
+             if file.endswith(".ckpt") or file.endswith(".safetensors")]
+    for i, file in enumerate(files):
         checkpoint_path = os.path.join(source_folder, file)
         dump_path = os.path.join(dump_folder, file.split(".")[0])
-        convert_ckpt_to_diffusion(checkpoint_path, dump_path)
+        # skip if this dump_path exist
+        if os.path.exists(dump_path):
+            continue
+        print (i + 1, "\\", len(files), "---converting: ", checkpoint_path, " to ", dump_path)
+
+        try:
+            begin_time = time.time()
+            convert_ckpt_to_diffusion(checkpoint_path, dump_path)
+            print ("---converting time: ", time.time() - begin_time, "s")
+        except:
+            print ("Error: ", checkpoint_path)
+            traceback.print_exc()
+
 
 def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
+
+    # check below for the deafault arg value setting for the converting from safetensor format.
+    is_safe_tensor = checkpoint_path.endswith(".safetensors")
+
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -106,6 +126,7 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
     )
     parser.add_argument(
         "--from_safetensors",
+        default = is_safe_tensor,
         action="store_true",
         help="If `--checkpoint_path` is in `safetensors` format, load checkpoint with safetensors instead of PyTorch.",
     )
@@ -174,7 +195,7 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
     parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     audio = os.path.join(parent_folder, "audio", "AI_img_finish.wav")
     playsound(audio)
-
+    print ("\n\nSuccessfully convert")
 
 if __name__ == "__main__":
     main()

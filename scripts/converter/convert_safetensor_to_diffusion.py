@@ -26,19 +26,21 @@ def main():
     dump_folder = "S:\SD-Model"
     files = [file for file in os.listdir(source_folder ) if file.endswith(".safetensors")]
     for file in files:
-        checkpoint_path = os.path.join(source_folder, file)
+        safetensor_path = os.path.join(source_folder, file)
         dump_path = os.path.join(dump_folder, file.split(".")[0])
+        # skip if this dump_path exist
+        if os.path.exists(dump_path):
+            continue
+        print (safetensor_path)
+        convert_safetensors_to_diffusion_to_diffusion(safetensor_path, dump_path)
 
-        print (checkpoint_path)
-        convert_safetensors_to_diffusion_to_diffusion(checkpoint_path, dump_path)
 
-
-def convert_action(base_model_path, checkpoint_path, LORA_PREFIX_UNET, LORA_PREFIX_TEXT_ENCODER, alpha):
+def convert_action(base_model_path, safetensor_path, LORA_PREFIX_UNET, LORA_PREFIX_TEXT_ENCODER, alpha):
     # load base model
     pipeline = StableDiffusionPipeline.from_pretrained(base_model_path, torch_dtype=torch.float32)
 
     # load LoRA weight from .safetensors
-    state_dict = load_file(checkpoint_path)
+    state_dict = load_file(safetensor_path)
 
     visited = []
 
@@ -99,14 +101,14 @@ def convert_action(base_model_path, checkpoint_path, LORA_PREFIX_UNET, LORA_PREF
     return pipeline
 
 
-def convert_safetensors_to_diffusion_to_diffusion(    checkpoint_path,    dump_path):
+def convert_safetensors_to_diffusion_to_diffusion(    safetensor_path,    dump_path):
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--base_model_path", default="runwayml/stable-diffusion-v1-5", type=str, required=False, help="Path to the base model in diffusers format."
     )
     parser.add_argument(
-        "--checkpoint_path", default=checkpoint_path, type=str, required=False, help="Path to the checkpoint to convert."
+        "--safetensor_path", default=safetensor_path, type=str, required=False, help="Path to the checkpoint to convert."
     )
     parser.add_argument("--dump_path", default=dump_path, type=str, required=False, help="Path to the output model.")
     parser.add_argument(
@@ -127,13 +129,13 @@ def convert_safetensors_to_diffusion_to_diffusion(    checkpoint_path,    dump_p
     args = parser.parse_args()
 
     base_model_path = args.base_model_path
-    checkpoint_path = args.checkpoint_path
+    safetensor_path = args.safetensor_path
     dump_path = args.dump_path
     lora_prefix_unet = args.lora_prefix_unet
     lora_prefix_text_encoder = args.lora_prefix_text_encoder
     alpha = args.alpha
 
-    pipe = convert_action(base_model_path, checkpoint_path, lora_prefix_unet, lora_prefix_text_encoder, alpha)
+    pipe = convert_action(base_model_path, safetensor_path, lora_prefix_unet, lora_prefix_text_encoder, alpha)
 
     pipe = pipe.to(args.device)
     pipe.save_pretrained(args.dump_path, safe_serialization=args.to_safetensors)

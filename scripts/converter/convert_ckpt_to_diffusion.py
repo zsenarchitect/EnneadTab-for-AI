@@ -34,7 +34,7 @@ def main():
         # skip if this dump_path exist
         if os.path.exists(dump_path):
             continue
-        print (i + 1, "\\", len(files), "---converting: ", checkpoint_path, " to ", dump_path)
+        print ("\n\n", i + 1, "\/", len(files), "---converting: ", checkpoint_path, " to ", dump_path)
 
         try:
             begin_time = time.time()

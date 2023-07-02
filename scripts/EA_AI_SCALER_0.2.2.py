@@ -132,6 +132,7 @@ class AiScaler:
         generator = torch.Generator(device=device).manual_seed(22345)
 
         scaler_model_id = "stabilityai/stable-diffusion-x4-upscaler"
+        # also can try "stabilityai/sd-x2-latent-upscaler"
         pipeline = StableDiffusionUpscalePipeline.from_pretrained(
             scaler_model_id,  torch_dtype=torch.float16
         )

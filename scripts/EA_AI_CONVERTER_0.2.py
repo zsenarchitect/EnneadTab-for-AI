@@ -1,9 +1,44 @@
 
+"""
+for next version:
+
+if trying to preserve color,
+ then cannot use control net, 
+ show provide a option to stable diffussion model, 
+ potentially diffusion2-1??
+
+ 
+ see how to convert safetensor file to diffusion
 
 
+ see how to direct connect lora file to base diffusion2-1, this should save time on loading
+
+"""
 
 
+import pyautogui
 EXE_NAME = u"Ennead_IMAGE_AI_CONVERTER"
+
+
+def is_another_app_running():
+
+    # print [x.title for x in pyautogui.getAllWindows()]
+    for window in pyautogui.getAllWindows():
+        # print window.title
+        if window.title == EXE_NAME:
+            return True
+        # if window.title == "EA_AI_CONVERTER":
+        #     return True
+    return False
+
+
+
+if is_another_app_running():
+    import sys
+    sys.exit()
+
+
+
 
 
 try:
@@ -340,6 +375,8 @@ class App:
         if time.time() - self.begining_time > 60*30:
             self.window.destroy()
             return
+        if is_another_app_running():
+            return
         self.window.after(1000, self.check_job)
 
     def check_job(self):
@@ -362,22 +399,10 @@ class App:
         print ("Enjoy!")
         self.window.mainloop()
 
-def is_another_app_running():
-
-    # print [x.title for x in pyautogui.getAllWindows()]
-    for window in pyautogui.getAllWindows():
-        # print window.title
-        if window.title == EXE_NAME:
-            return True
-        # if window.title == "EA_AI_CONVERTER":
-        #     return True
-    return False
-
 
 @utils.try_catch_error
 def main():
-    if is_another_app_running():
-        return
+
     
    
     app = App()

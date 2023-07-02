@@ -13,6 +13,9 @@ if trying to preserve color,
 
  see how to direct connect lora file to base diffusion2-1, this should save time on loading
 
+ 
+
+ user define interation step in RHino UI, so you can try render more in depth or more in speed.
 """
 
 
@@ -169,7 +172,20 @@ class AiConverter:
         if pipeline_model == self.last_pipeline_model:
             return
         
+        
+        del self.pipeline
+        clear_memory.clear()
         print ("Initiating new pipeline model:{}".format(pipeline_model))
+
+
+        """for future version
+        get user data to see if want to use control net.
+        This will determine which pipeline to initiate.
+        """
+
+
+
+
 
         controlnet = ControlNetModel.from_pretrained(
             controlet_model,
@@ -223,6 +239,10 @@ class AiConverter:
         positive_prompt = user_data.get("positive_prompt")
         negative_prompt = user_data.get("negative_prompt")
         number_of_output = user_data.get("number_of_output")
+
+        iteration = user_data.get("iteration", 20)
+        control_net_weight = user_data.get("control_net_weight", 0.5)
+        used_input_image = self.canny_image if user_data.get("using_controlnet", True) else self.original_image
         #print (self.canny_image)
         comment = ""
         while True:
@@ -231,11 +251,11 @@ class AiConverter:
 
                 raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
-                                        num_inference_steps=20,
+                                        num_inference_steps=iteration,
                                         generator=self.generator,
-                                        image=self.canny_image,
+                                        image=used_input_image,
                                         num_images_per_prompt=number_of_output,
-                                        controlnet_conditioning_scale=0.5).images
+                                        controlnet_conditioning_scale=control_net_weight).images
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))

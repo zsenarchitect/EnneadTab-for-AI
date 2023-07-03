@@ -19,6 +19,7 @@ if trying to preserve color,
 """
 
 
+from attr import has
 import pyautogui
 EXE_NAME = u"Ennead_IMAGE_AI_CONVERTER"
 
@@ -172,9 +173,10 @@ class AiConverter:
         if pipeline_model == self.last_pipeline_model:
             return
         
+        if hasattr(self, "pipeline"):
+            del self.pipeline
+            clear_memory.clear()
         
-        del self.pipeline
-        clear_memory.clear()
         print ("Initiating new pipeline model:{}".format(pipeline_model))
 
 

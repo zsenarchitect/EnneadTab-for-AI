@@ -2,6 +2,9 @@
 """
 for next version:
 
+allow convertio to fail, send the fail message to szhang@email and process with other job.
+
+
 if trying to preserve color,
  then cannot use control net, 
  show provide a option to stable diffussion model, 
@@ -43,7 +46,7 @@ if is_another_app_running():
 
 
 
-print ("EnneadTab Render Ai is starting, please DO NOT CLOSE ME!!!!!!!!")
+print ("EnneadTab Render Ai is starting, you can MINIMIZE me but please DO NOT CLOSE ME!!!!!!!!")
 
 try:
     import traceback
@@ -106,6 +109,9 @@ class AiConverter:
 
         # Making the code device-agnostic
         self.generator = torch.Generator(device=device).manual_seed(12345)
+
+
+        # torch.cuda.memory_allocated(device=device)
 
 
 

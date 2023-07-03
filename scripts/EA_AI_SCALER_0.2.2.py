@@ -28,7 +28,7 @@ if is_another_app_running():
     import sys
     sys.exit()
 
-print ("EnneadTab UpScaler Ai is starting, please DO NOT CLOSE ME!!!!!!!!")
+print ("EnneadTab UpScaler Ai is starting, you can MINIMIZE me but please DO NOT CLOSE ME!!!!!!!!")
 try:
     import traceback
     import os

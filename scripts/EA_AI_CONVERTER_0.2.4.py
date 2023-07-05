@@ -2,6 +2,9 @@
 """
 for next version:
 
+read document for img2img. it has interesting method for loading Lora and checkpoint model directly. note that Lora format is not officially long term supported. 
+https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/img2img
+
 allow convertio to fail, send the fail message to szhang@email and process with other job.
 
 

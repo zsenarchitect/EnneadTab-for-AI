@@ -31,6 +31,7 @@ if trying to preserve color,
 """
 
 
+from os import pipe
 from attr import has
 import pyautogui
 EXE_NAME = u"Ennead_IMAGE_AI_CONVERTER"
@@ -89,7 +90,7 @@ try:
     print (PIL.__version__)
     from PIL import Image
 
-    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler
+    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler, StableDiffusionImg2ImgPipeline
     print (utils.random_joke())
     import time
     from playsound import playsound
@@ -184,7 +185,11 @@ class AiConverter:
         return canny_image
 
 
-    def initiate_pipeline(self, controlet_model, pipeline_model):
+    def initiate_pipeline(self, user_data ):
+        
+        controlet_model, pipeline_model = user_data.get("controlnet_model"), user_data.get("pipeline_model")
+
+
         if pipeline_model == self.last_pipeline_model:
             return
         
@@ -200,28 +205,39 @@ class AiConverter:
         This will determine which pipeline to initiate.
         """
 
+        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
+
+        match foundation_pipeline:
+            case "control_net":
+                print ("Using ControlNet Pipeline.")
+                controlnet = ControlNetModel.from_pretrained(
+                controlet_model,
+                torch_dtype=torch.float16 )
+
+
+                # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"  
+                # model_path = pipeline_model
+                # from huggingface_hub import model_info
+                # info = model_info(model_path)
+                # model_base = info.cardData["base_model"]
+                # model_base = "runwayml/stable-diffusion-v1-5"
+
+                pipeline = StableDiffusionControlNetPipeline.from_pretrained(
+                pipeline_model,
+                controlnet=controlnet,
+                torch_dtype=torch.float16
+                )
+            case "img2img":
+                print ("Using Img2Img Pipeline.")
+                pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(pipeline_model, torch_dtype=torch.float16)
+            case _:
+                pass
+
+        
 
 
 
 
-        controlnet = ControlNetModel.from_pretrained(
-            controlet_model,
-            torch_dtype=torch.float16
-        )
-
-
-        # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"  
-        # model_path = pipeline_model
-        # from huggingface_hub import model_info
-        # info = model_info(model_path)
-        # model_base = info.cardData["base_model"]
-        # model_base = "runwayml/stable-diffusion-v1-5"
-
-        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
-            pipeline_model,
-            controlnet=controlnet,
-            torch_dtype=torch.float16
-        )
 
         # change the scheduler
         pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
@@ -370,7 +386,7 @@ class AiConverter:
 
         self.session = data.get("session")
         self.canny_image = self.convert2canny(data.get("input_image"))
-        self.initiate_pipeline(data.get("controlnet_model"), data.get("pipeline_model"))
+        self.initiate_pipeline(data)
         meta_data = self.text2image(data)
         
 

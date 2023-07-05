@@ -160,8 +160,10 @@ class AiConverter:
             if data["direction"] == "IN":
                 self.data_file = utils.get_EA_dump_folder_file(file)
                 return True
-            else:
+            elif data["direction"] == "OUT":
                 os.remove(utils.get_EA_dump_folder_file(file))
+            else:
+                pass
             
         return False
                 
@@ -279,27 +281,22 @@ class AiConverter:
         number_of_output = user_data.get("number_of_output")
 
         iteration = user_data.get("iteration", 20)
-        control_net_weight = user_data.get("control_net_weight", 0.5)
-        used_input_image = self.canny_image if user_data.get("foundation_pipeline", "control_net") == "control_net" else self.original_image
-        #print (self.canny_image)
-        comment = ""
+        
         foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
+
+
+        comment = ""
+        
 
 
         while True:
 
             try:
                 match foundation_pipeline:
-                    case "in_paint":
-                        mask_image = Image.open(user_data.get("in_paint_mask_img"))
-                        raw_images = self.pipeline(positive_prompt,
-                                        negative_prompt = negative_prompt, 
-                                        num_inference_steps=iteration,
-                                        generator=self.generator,
-                                        image=used_input_image,
-                                        mask_image=mask_image,
-                                        num_images_per_prompt=number_of_output).images
+                    
                     case "control_net":
+                        used_input_image = self.canny_image
+                        control_net_weight = user_data.get("control_net_weight", 0.5)
                         raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
                                         num_inference_steps=iteration,
@@ -308,11 +305,23 @@ class AiConverter:
                                         num_images_per_prompt=number_of_output,
                                         controlnet_conditioning_scale=control_net_weight).images
                     case "img2img":
+                        used_input_image = Image.open(user_data.get("reference_image"))
                         raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
                                         num_inference_steps=iteration,
                                         generator=self.generator,
                                         image=used_input_image,
+                                        num_images_per_prompt=number_of_output).images
+                        
+                    case "in_paint":
+                        used_input_image = self.original_image
+                        mask_image = Image.open(user_data.get("in_paint_mask_img"))
+                        raw_images = self.pipeline(positive_prompt,
+                                        negative_prompt = negative_prompt, 
+                                        num_inference_steps=iteration,
+                                        generator=self.generator,
+                                        image=used_input_image,
+                                        mask_image=mask_image,
                                         num_images_per_prompt=number_of_output).images
                 break
             except Exception as e:
@@ -417,7 +426,12 @@ class AiConverter:
         
 
         data["meta_data"] = meta_data
-        data["direction"] = "OUT"
+        if meta_data:
+            data["direction"] = "OUT"
+        else:
+            data["direction"] = "FAIL"
+            os.rename(self.data_file,
+                          utils.get_EA_dump_folder_file("FAILED_{}".format( self.session)))
         # data["compute_time"] = float(time.time() - begin_time)
         
         # logging.info("time = {}s".format(data['compute_time']))

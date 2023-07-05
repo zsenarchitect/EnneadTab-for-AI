@@ -90,7 +90,7 @@ try:
     print (PIL.__version__)
     from PIL import Image
 
-    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler, StableDiffusionImg2ImgPipeline
+    from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline
     print (utils.random_joke())
     import time
     from playsound import playsound
@@ -110,6 +110,7 @@ class AiConverter:
     @utils.try_catch_error
     def __init__(self):
         self.last_pipeline_model = None
+        self.last_foundation_pipeline = None
 
 
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -188,9 +189,9 @@ class AiConverter:
     def initiate_pipeline(self, user_data ):
         
         controlet_model, pipeline_model = user_data.get("controlnet_model"), user_data.get("pipeline_model")
+        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
 
-
-        if pipeline_model == self.last_pipeline_model:
+        if pipeline_model == self.last_pipeline_model and foundation_pipeline == self.last_foundation_pipeline:
             return
         
         if hasattr(self, "pipeline"):
@@ -205,7 +206,7 @@ class AiConverter:
         This will determine which pipeline to initiate.
         """
 
-        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
+
 
         match foundation_pipeline:
             case "control_net":
@@ -230,7 +231,11 @@ class AiConverter:
             case "img2img":
                 print ("Using Img2Img Pipeline.")
                 pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(pipeline_model, torch_dtype=torch.float16)
-            case _:
+            case "in_paint":
+                print ("Using InPaint Pipeline.")
+                pipeline = StableDiffusionInpaintPipeline.from_pretrained(pipeline_model, torch_dtype=torch.float16)
+
+                # image = pipe(prompt=prompt, image=init_image, mask_image=mask_image).images[0]
                 pass
 
         
@@ -275,20 +280,40 @@ class AiConverter:
 
         iteration = user_data.get("iteration", 20)
         control_net_weight = user_data.get("control_net_weight", 0.5)
-        used_input_image = self.canny_image if user_data.get("using_controlnet", True) else self.original_image
+        used_input_image = self.canny_image if user_data.get("foundation_pipeline", "control_net") == "control_net" else self.original_image
         #print (self.canny_image)
         comment = ""
+        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
+
+
         while True:
 
             try:
-
-                raw_images = self.pipeline(positive_prompt,
+                match foundation_pipeline:
+                    case "in_paint":
+                        mask_image = Image.open(user_data.get("in_paint_mask_img"))
+                        raw_images = self.pipeline(positive_prompt,
+                                        negative_prompt = negative_prompt, 
+                                        num_inference_steps=iteration,
+                                        generator=self.generator,
+                                        image=used_input_image,
+                                        mask_image=mask_image,
+                                        num_images_per_prompt=number_of_output).images
+                    case "control_net":
+                        raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
                                         num_inference_steps=iteration,
                                         generator=self.generator,
                                         image=used_input_image,
                                         num_images_per_prompt=number_of_output,
                                         controlnet_conditioning_scale=control_net_weight).images
+                    case "img2img":
+                        raw_images = self.pipeline(positive_prompt,
+                                        negative_prompt = negative_prompt, 
+                                        num_inference_steps=iteration,
+                                        generator=self.generator,
+                                        image=used_input_image,
+                                        num_images_per_prompt=number_of_output).images
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))
@@ -358,6 +383,7 @@ class AiConverter:
 
 
         self.last_pipeline_model = user_data.get("pipeline_model")
+        self.last_foundation_pipeline = user_data.get("foundation_pipeline")
         # del self.pipeline
         # del self.generator
         del self.canny_image

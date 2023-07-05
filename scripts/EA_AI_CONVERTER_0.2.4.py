@@ -20,8 +20,6 @@ if trying to preserve color,
  see how to direct connect lora file to base diffusion2-1, this should save time on loading
 
  
-
- user define interation step in RHino UI, so you can try render more in depth or more in speed.
 """
 
 

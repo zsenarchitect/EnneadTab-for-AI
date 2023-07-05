@@ -2,6 +2,16 @@
 """
 for next version:
 
+try writing with text color and bold in console. red is failed attempt, will not try again until normal job all finished. green is successful.
+
+
+add option to email results when done.
+
+
+see below for inpaint pipeline, this means also research the drawable area in eto form as mask image args. 
+https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/inpaint
+
+
 read document for img2img. it has interesting method for loading Lora and checkpoint model directly. note that Lora format is not officially long term supported. 
 https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/img2img
 

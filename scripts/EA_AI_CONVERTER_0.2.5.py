@@ -306,6 +306,8 @@ class AiConverter:
                                         controlnet_conditioning_scale=control_net_weight).images
                     case "img2img":
                         used_input_image = Image.open(user_data.get("reference_image"))
+                        used_input_image = self.original_image
+                        """has to decide which to use as input image."""
                         raw_images = self.pipeline(positive_prompt,
                                         negative_prompt = negative_prompt, 
                                         num_inference_steps=iteration,

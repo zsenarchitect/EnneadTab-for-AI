@@ -21,23 +21,30 @@ import os
 from safetensors.torch import load_file
 from diffusers import StableDiffusionPipeline
 
+
 def main():
-    source_folder = "S:\SD-Model\source"
-    dump_folder = "S:\SD-Model"
-    files = [file for file in os.listdir(source_folder ) if file.endswith(".safetensors")]
+    source_folder = "L:\\4b_Applied Computing\\SD-Model\\source"
+    dump_folder = "L:\\4b_Applied Computing\\SD-Model"
+    files = [file for file in os.listdir(
+        source_folder) if file.endswith(".safetensors")]
+    files = [file for file in files if "diffusion_pytorch_model" in file]
+
     for file in files:
         safetensor_path = os.path.join(source_folder, file)
+        # safetensor_path = "lllyasviel/sd-controlnet-canny"
         dump_path = os.path.join(dump_folder, file.split(".")[0])
         # skip if this dump_path exist
         if os.path.exists(dump_path):
             continue
-        print (safetensor_path)
-        convert_safetensors_to_diffusion_to_diffusion(safetensor_path, dump_path)
+        print(safetensor_path)
+        convert_safetensors_to_diffusion_to_diffusion(
+            safetensor_path, dump_path)
 
 
 def convert_action(base_model_path, safetensor_path, LORA_PREFIX_UNET, LORA_PREFIX_TEXT_ENCODER, alpha):
     # load base model
-    pipeline = StableDiffusionPipeline.from_pretrained(base_model_path, torch_dtype=torch.float32)
+    pipeline = StableDiffusionPipeline.from_pretrained(
+        base_model_path, torch_dtype=torch.float32)
 
     # load LoRA weight from .safetensors
     state_dict = load_file(safetensor_path)
@@ -54,15 +61,17 @@ def convert_action(base_model_path, safetensor_path, LORA_PREFIX_UNET, LORA_PREF
             continue
 
         if "text" in key:
-            layer_infos = key.split(".")[0].split(LORA_PREFIX_TEXT_ENCODER + "_")[-1].split("_")
+            layer_infos = key.split(".")[0].split(
+                LORA_PREFIX_TEXT_ENCODER + "_")[-1].split("_")
             curr_layer = pipeline.text_encoder
         else:
-            layer_infos = key.split(".")[0].split(LORA_PREFIX_UNET + "_")[-1].split("_")
+            layer_infos = key.split(".")[0].split(
+                LORA_PREFIX_UNET + "_")[-1].split("_")
             curr_layer = pipeline.unet
 
         # find the target layer
         temp_name = layer_infos.pop(0)
-        print (layer_infos)
+        print(layer_infos)
         while len(layer_infos) > -1:
             try:
                 curr_layer = curr_layer.__getattr__(temp_name)
@@ -86,9 +95,12 @@ def convert_action(base_model_path, safetensor_path, LORA_PREFIX_UNET, LORA_PREF
 
         # update weight
         if len(state_dict[pair_keys[0]].shape) == 4:
-            weight_up = state_dict[pair_keys[0]].squeeze(3).squeeze(2).to(torch.float32)
-            weight_down = state_dict[pair_keys[1]].squeeze(3).squeeze(2).to(torch.float32)
-            curr_layer.weight.data += alpha * torch.mm(weight_up, weight_down).unsqueeze(2).unsqueeze(3)
+            weight_up = state_dict[pair_keys[0]].squeeze(
+                3).squeeze(2).to(torch.float32)
+            weight_down = state_dict[pair_keys[1]].squeeze(
+                3).squeeze(2).to(torch.float32)
+            curr_layer.weight.data += alpha * \
+                torch.mm(weight_up, weight_down).unsqueeze(2).unsqueeze(3)
         else:
             weight_up = state_dict[pair_keys[0]].to(torch.float32)
             weight_down = state_dict[pair_keys[1]].to(torch.float32)
@@ -101,7 +113,7 @@ def convert_action(base_model_path, safetensor_path, LORA_PREFIX_UNET, LORA_PREF
     return pipeline
 
 
-def convert_safetensors_to_diffusion_to_diffusion(    safetensor_path,    dump_path):
+def convert_safetensors_to_diffusion_to_diffusion(safetensor_path,    dump_path):
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -110,7 +122,8 @@ def convert_safetensors_to_diffusion_to_diffusion(    safetensor_path,    dump_p
     parser.add_argument(
         "--safetensor_path", default=safetensor_path, type=str, required=False, help="Path to the checkpoint to convert."
     )
-    parser.add_argument("--dump_path", default=dump_path, type=str, required=False, help="Path to the output model.")
+    parser.add_argument("--dump_path", default=dump_path, type=str,
+                        required=False, help="Path to the output model.")
     parser.add_argument(
         "--lora_prefix_unet", default="lora_unet", type=str, help="The prefix of UNet weight in safetensors"
     )
@@ -120,11 +133,13 @@ def convert_safetensors_to_diffusion_to_diffusion(    safetensor_path,    dump_p
         type=str,
         help="The prefix of text encoder weight in safetensors",
     )
-    parser.add_argument("--alpha", default=0.75, type=float, help="The merging ratio in W = W0 + alpha * deltaW")
+    parser.add_argument("--alpha", default=0.75, type=float,
+                        help="The merging ratio in W = W0 + alpha * deltaW")
     parser.add_argument(
         "--to_safetensors", action="store_true", help="Whether to store pipeline in safetensors format or not."
     )
-    parser.add_argument("--device", type=str, help="Device to use (e.g. cpu, cuda:0, cuda:1, etc.)")
+    parser.add_argument("--device", type=str,
+                        help="Device to use (e.g. cpu, cuda:0, cuda:1, etc.)")
 
     args = parser.parse_args()
 
@@ -135,12 +150,12 @@ def convert_safetensors_to_diffusion_to_diffusion(    safetensor_path,    dump_p
     lora_prefix_text_encoder = args.lora_prefix_text_encoder
     alpha = args.alpha
 
-    pipe = convert_action(base_model_path, safetensor_path, lora_prefix_unet, lora_prefix_text_encoder, alpha)
+    pipe = convert_action(base_model_path, safetensor_path,
+                          lora_prefix_unet, lora_prefix_text_encoder, alpha)
 
     pipe = pipe.to(args.device)
-    pipe.save_pretrained(args.dump_path, safe_serialization=args.to_safetensors)
-
-
+    pipe.save_pretrained(
+        args.dump_path, safe_serialization=args.to_safetensors)
 
     import os
     parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

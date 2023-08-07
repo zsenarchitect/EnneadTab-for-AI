@@ -23,33 +23,36 @@ import time
 
 from diffusers.pipelines.stable_diffusion.convert_from_ckpt import download_from_original_stable_diffusion_ckpt
 
+
 def main():
-    source_folder = "S:\SD-Model\source"
-    dump_folder = "S:\SD-Model"
-    files = [file for file in os.listdir(source_folder ) 
+    source_folder = "L:\\4b_Applied Computing\\SD-Model\\source"
+    dump_folder = "L:\\4b_Applied Computing\\SD-Model"
+
+    files = [file for file in os.listdir(source_folder)
              if file.endswith(".ckpt") or file.endswith(".safetensors")]
     for i, file in enumerate(files):
         checkpoint_path = os.path.join(source_folder, file)
+        # checkpoint_path = "lllyasviel/sd-controlnet-canny"
         dump_path = os.path.join(dump_folder, file.split(".")[0])
         # skip if this dump_path exist
         if os.path.exists(dump_path):
             continue
-        print ("\n\n", i + 1, "/", len(files), "---converting: ", checkpoint_path, " to ", dump_path)
+        print("\n\n", i + 1, "/", len(files), "---converting: ",
+              checkpoint_path, " to ", dump_path)
 
         try:
             begin_time = time.time()
             convert_ckpt_to_diffusion(checkpoint_path, dump_path)
-            print ("---converting time: ", time.time() - begin_time, "s")
+            print("---converting time: ", time.time() - begin_time, "s")
         except:
-            print ("Error: ", checkpoint_path)
+            print("Error: ", checkpoint_path)
             traceback.print_exc()
 
 
-def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
+def convert_ckpt_to_diffusion(checkpoint_path,    dump_path):
 
     # check below for the deafault arg value setting for the converting from safetensor format.
     is_safe_tensor = checkpoint_path.endswith(".safetensors")
-
 
     parser = argparse.ArgumentParser()
 
@@ -59,7 +62,6 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
     parser.add_argument(
         "--dump_path", default=dump_path, type=str, required=False, help="Path to the output model.",
     )
-
 
     # !wget https://raw.githubusercontent.com/CompVis/stable-diffusion/main/configs/stable-diffusion/v1-inference.yaml
     parser.add_argument(
@@ -126,7 +128,7 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
     )
     parser.add_argument(
         "--from_safetensors",
-        default = is_safe_tensor,
+        default=is_safe_tensor,
         action="store_true",
         help="If `--checkpoint_path` is in `safetensors` format, load checkpoint with safetensors instead of PyTorch.",
     )
@@ -136,7 +138,8 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
         help="Whether to store pipeline in safetensors format or not.",
     )
 
-    parser.add_argument("--device", type=str, help="Device to use (e.g. cpu, cuda:0, cuda:1, etc.)")
+    parser.add_argument("--device", type=str,
+                        help="Device to use (e.g. cpu, cuda:0, cuda:1, etc.)")
     parser.add_argument(
         "--stable_unclip",
         type=str,
@@ -160,7 +163,8 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
     parser.add_argument(
         "--controlnet", action="store_true", default=None, help="Set flag if this is a controlnet checkpoint."
     )
-    parser.add_argument("--half", action="store_true", help="Save weights in half precision.")
+    parser.add_argument("--half", action="store_true",
+                        help="Save weights in half precision.")
     args = parser.parse_args()
 
     pipe = download_from_original_stable_diffusion_ckpt(
@@ -186,16 +190,18 @@ def convert_ckpt_to_diffusion(    checkpoint_path,    dump_path):
 
     if args.controlnet:
         # only save the controlnet model
-        pipe.controlnet.save_pretrained(args.dump_path, safe_serialization=args.to_safetensors)
+        pipe.controlnet.save_pretrained(
+            args.dump_path, safe_serialization=args.to_safetensors)
     else:
-        pipe.save_pretrained(args.dump_path, safe_serialization=args.to_safetensors)
-
+        pipe.save_pretrained(
+            args.dump_path, safe_serialization=args.to_safetensors)
 
     import os
     parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     audio = os.path.join(parent_folder, "audio", "AI_img_finish.wav")
     playsound(audio)
-    print ("\n\nSuccessfully convert")
+    print("\n\nSuccessfully convert")
+
 
 if __name__ == "__main__":
     main()

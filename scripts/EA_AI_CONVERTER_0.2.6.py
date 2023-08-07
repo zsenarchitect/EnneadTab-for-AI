@@ -49,14 +49,12 @@ def is_another_app_running():
     return False
 
 
-
 if is_another_app_running():
     import sys
     sys.exit()
 
 
-
-print ("\033[1;34mEnneadTab Render Ai is starting, you can MINIMIZE me but please DO NOT CLOSE ME!!!!!!!!\033[0m")
+print("\033[1;34mEnneadTab Render Ai is starting, you can MINIMIZE me but please DO NOT CLOSE ME!!!!!!!!\033[0m")
 
 try:
     import traceback
@@ -71,27 +69,28 @@ try:
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         filemode='w',
                         filename=utils.get_EA_dump_folder_file("{}_converter_log.log".format(EXE_NAME)))
-    print (utils.random_joke())
+    print(utils.random_joke())
     import clear_memory
- 
+
     clear_memory.clear()
-    print (utils.random_joke())
+    print(utils.random_joke())
     # try:
     # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb=64'
     # except:
     #     print (traceback.format_exc())
 
     import torch
-    print (utils.random_joke())
+    print(utils.random_joke())
 
     import cv2
     import numpy as np
-    import PIL # this is to force include PIL in the pyinstaller process. The import itself does nothing.
-    print (PIL.__version__)
+    # this is to force include PIL in the pyinstaller process. The import itself does nothing.
+    import PIL
+    print(PIL.__version__)
     from PIL import Image
 
     from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, DPMSolverMultistepScheduler, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline
-    print (utils.random_joke())
+    print(utils.random_joke())
     import time
     from playsound import playsound
     import pyautogui
@@ -112,40 +111,35 @@ class AiConverter:
         self.last_pipeline_model = None
         self.last_foundation_pipeline = None
 
-
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         # check availibity
         logging.info("Checking availibity: Device Name = {}".format(device))
 
-
         # Making the code device-agnostic
         self.generator = torch.Generator(device=device).manual_seed(12345)
 
-
         # torch.cuda.memory_allocated(device=device)
 
-
-
-    def play_audio(self, file = None, force_play = False):
+    def play_audio(self, file=None, force_play=False):
         # check if the username is "szhang"
         if os.getlogin() != "szhang":
             if not force_play:
                 return
-        
+
         if file is None:
-            file = os.path.join(os.path.dirname(__file__), "audio", "default.wav")
+            file = os.path.join(os.path.dirname(
+                __file__), "audio", "default.wav")
         else:
             file = os.path.join(os.path.dirname(__file__), "audio", file)
         playsound(file)
-
 
     def has_new_job(self):
         # if self.is_thinking:
         #     return False
 
-
         # get all files in the folder that has "AI_RENDER_DATA" in file name
-        files = [f for f in os.listdir(utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
+        files = [f for f in os.listdir(
+            utils.get_EA_local_dump_folder()) if "AI_RENDER_DATA" in f]
         # if there is any file, return true
         if len(files) == 0:
             return False
@@ -164,9 +158,8 @@ class AiConverter:
                 os.remove(utils.get_EA_dump_folder_file(file))
             else:
                 pass
-            
+
         return False
-                
 
     def convert2canny(self, image_path):
         image = Image.open(image_path)
@@ -187,38 +180,35 @@ class AiConverter:
         self.play_audio()
         return canny_image
 
+    def initiate_pipeline(self, user_data):
 
-    def initiate_pipeline(self, user_data ):
-        
-        controlet_model, pipeline_model = user_data.get("controlnet_model"), user_data.get("pipeline_model")
-        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
+        controlet_model, pipeline_model = user_data.get(
+            "controlnet_model"), user_data.get("pipeline_model")
+        foundation_pipeline = user_data.get(
+            "foundation_pipeline", "control_net")
 
         if pipeline_model == self.last_pipeline_model and foundation_pipeline == self.last_foundation_pipeline:
             return
-        
+
         if hasattr(self, "pipeline"):
             del self.pipeline
             clear_memory.clear()
-        
-        print ("Initiating new pipeline model:{}".format(pipeline_model))
 
+        print("Initiating new pipeline model:{}".format(pipeline_model))
 
         """for future version
         get user data to see if want to use control net.
         This will determine which pipeline to initiate.
         """
 
-
-
         match foundation_pipeline:
             case "control_net":
-                print ("Using ControlNet Pipeline.")
+                print("Using ControlNet Pipeline.")
                 controlnet = ControlNetModel.from_pretrained(
-                controlet_model,
-                torch_dtype=torch.float16 )
+                    controlet_model,
+                    torch_dtype=torch.float16)
 
-
-                # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"  
+                # pipeline_model = "sayakpaul/sd-model-finetuned-lora-t4"
                 # model_path = pipeline_model
                 # from huggingface_hub import model_info
                 # info = model_info(model_path)
@@ -226,36 +216,38 @@ class AiConverter:
                 # model_base = "runwayml/stable-diffusion-v1-5"
 
                 pipeline = StableDiffusionControlNetPipeline.from_pretrained(
-                pipeline_model,
-                controlnet=controlnet,
-                torch_dtype=torch.float16
+                    pipeline_model,
+                    controlnet=controlnet,
+                    torch_dtype=torch.float16
                 )
+
+                # Sen Zhang only
+
+                # pipeline.controlnet.save_pretrained(
+                #     "L:\\4b_Applied Computing\\SD-Model\\sd-controlnet-canny", safe_serialization=True)
+                # print("pretrain control net saved")
             case "img2img":
-                print ("Using Img2Img Pipeline.")
-                pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(pipeline_model, torch_dtype=torch.float16)
+                print("Using Img2Img Pipeline.")
+                pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(
+                    pipeline_model, torch_dtype=torch.float16)
             case "in_paint":
-                print ("Using InPaint Pipeline.")
-                pipeline = StableDiffusionInpaintPipeline.from_pretrained(pipeline_model, torch_dtype=torch.float16)
+                print("Using InPaint Pipeline.")
+                pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+                    pipeline_model, torch_dtype=torch.float16)
 
                 # image = pipe(prompt=prompt, image=init_image, mask_image=mask_image).images[0]
                 pass
 
-        
-
-
-
-
-
         # change the scheduler
-        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
-        
+        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
+            pipeline.scheduler.config)
 
-        #comment out below two line if want to do default:  load the LoRA weights from the Hub on top of the regular model weights, move the pipeline to the cuda device and run inference:
-        #pipeline.unet.load_attn_procs(pipeline_model, local_files_only = True)
+        # comment out below two line if want to do default:  load the LoRA weights from the Hub on top of the regular model weights, move the pipeline to the cuda device and run inference:
+        # pipeline.unet.load_attn_procs(pipeline_model, local_files_only = True)
         """
         - A path to a *directory* containing model weights saved using [`~ModelMixin.save_config`], e.g.,
                       `./my_model_directory/`."""
-        #pipeline.to("cuda")
+        # pipeline.to("cuda")
 
         # enable xformers (optional), requires xformers installation
         try:
@@ -266,14 +258,11 @@ class AiConverter:
         # cpu offload for memory saving, requires accelerate>=0.17.0
         pipeline.enable_model_cpu_offload()
 
-
-        
         self.play_audio()
 
         logging.info("pipeline and generator initiated")
 
-        self.pipeline =  pipeline
-
+        self.pipeline = pipeline
 
     def text2image(self, user_data):
         positive_prompt = user_data.get("positive_prompt")
@@ -281,89 +270,87 @@ class AiConverter:
         number_of_output = user_data.get("number_of_output")
 
         iteration = user_data.get("iteration", 20)
-        
-        foundation_pipeline = user_data.get("foundation_pipeline", "control_net")
 
+        foundation_pipeline = user_data.get(
+            "foundation_pipeline", "control_net")
 
         comment = ""
-        
-
 
         while True:
 
             try:
                 match foundation_pipeline:
-                    
+
                     case "control_net":
                         used_input_image = self.canny_image
-                        control_net_weight = user_data.get("control_net_weight", 0.5)
+                        control_net_weight = user_data.get(
+                            "control_net_weight", 0.5)
                         raw_images = self.pipeline(positive_prompt,
-                                        negative_prompt = negative_prompt, 
-                                        num_inference_steps=iteration,
-                                        generator=self.generator,
-                                        image=used_input_image,
-                                        num_images_per_prompt=number_of_output,
-                                        controlnet_conditioning_scale=control_net_weight).images
+                                                   negative_prompt=negative_prompt,
+                                                   num_inference_steps=iteration,
+                                                   generator=self.generator,
+                                                   image=used_input_image,
+                                                   num_images_per_prompt=number_of_output,
+                                                   controlnet_conditioning_scale=control_net_weight).images
                     case "img2img":
-                        used_input_image = Image.open(user_data.get("reference_image"))
+                        used_input_image = Image.open(
+                            user_data.get("reference_image"))
                         used_input_image = self.original_image
                         """has to decide which to use as input image."""
                         raw_images = self.pipeline(positive_prompt,
-                                        negative_prompt = negative_prompt, 
-                                        num_inference_steps=iteration,
-                                        generator=self.generator,
-                                        image=used_input_image,
-                                        num_images_per_prompt=number_of_output).images
-                        
+                                                   negative_prompt=negative_prompt,
+                                                   num_inference_steps=iteration,
+                                                   generator=self.generator,
+                                                   image=used_input_image,
+                                                   num_images_per_prompt=number_of_output).images
+
                     case "in_paint":
                         used_input_image = self.original_image
-                        mask_image = Image.open(user_data.get("in_paint_mask_img"))
+                        mask_image = Image.open(
+                            user_data.get("in_paint_mask_img"))
                         raw_images = self.pipeline(positive_prompt,
-                                        negative_prompt = negative_prompt, 
-                                        num_inference_steps=iteration,
-                                        generator=self.generator,
-                                        image=used_input_image,
-                                        mask_image=mask_image,
-                                        num_images_per_prompt=number_of_output).images
+                                                   negative_prompt=negative_prompt,
+                                                   num_inference_steps=iteration,
+                                                   generator=self.generator,
+                                                   image=used_input_image,
+                                                   mask_image=mask_image,
+                                                   num_images_per_prompt=number_of_output).images
                 break
             except Exception as e:
                 logging.info("Error in pipeline: {}".format(e))
-                print (e)
+                print(e)
                 width, height = self.canny_image.size
 
                 if width < 50 or height < 50:
                     comment = "\n\033[31mThe task is abandoned. See debug panel for details\033[0m"
                     logging.info(comment)
-                    print (comment)
+                    print(comment)
                     comment += comment
                     clear_memory.clear()
                     return {}
 
                 # Calculate the new size
                 new_size = (int(width*0.75), int(height*0.75))
-                comment = "\n\033[31mThe image is too large, scaling it down to 75%. New size = {}\033[0m".format(new_size)
+                comment = "\n\033[31mThe image is too large, scaling it down to 75%. New size = {}\033[0m".format(
+                    new_size)
                 logging.info(comment)
-                print (comment)
+                print(comment)
                 comment += comment
                 clear_memory.clear()
                 # Resize the image
                 self.canny_image = self.canny_image.resize(new_size)
-                
 
         # Get the absolute path to the active script
-        
-        output_folder = os.path.join(utils.get_EA_local_dump_folder(), 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session))
-        os.makedirs( output_folder, exist_ok=True)
-        print (output_folder)
+
+        output_folder = os.path.join(utils.get_EA_local_dump_folder(
+        ), 'EnneadTab_Ai_Rendering', 'Session_{}'.format(self.session))
+        os.makedirs(output_folder, exist_ok=True)
+        print(output_folder)
 
         # image_path = os.path.join(output_folder, 'Original.jpg')
         # self.original_image.save(image_path)
         image_path = os.path.join(output_folder, 'Abstracted.jpeg')
         self.canny_image.save(image_path)
-
-
-      
-        
 
         for i, raw_image in enumerate(raw_images):
 
@@ -371,27 +358,22 @@ class AiConverter:
             image_path = os.path.join(output_folder, 'AI_{}.jpeg'.format(i+1))
             raw_image.save(image_path)
 
-
-
-
-
         self.play_audio("AI_img_finish.wav", force_play=True)
 
         # print ("TO DO: save the human readable meta data of input in this folder. Include P-promt, N prompt, style_tags, session time and name, number of output.")
         meta_data_json = {
-            "positive_prompt": positive_prompt, 
+            "positive_prompt": positive_prompt,
             "negative_prompt": negative_prompt,
             "comments": comment,
             "model_name": user_data.get("pipeline_model"),
             "session_time": self.session,
             "number_of_output": number_of_output,
-            "desired_resolution":user_data.get("desired_resolution", [0,0])}
-        
+            "desired_resolution": user_data.get("desired_resolution", [0, 0])}
+
         # save the meta data in the same folder as the images
         with open(os.path.join(output_folder, "EnneadTab AI Meta Data.json"), "w") as f:
 
             json.dump(meta_data_json, f, indent=4)
-
 
         self.last_pipeline_model = user_data.get("pipeline_model")
         self.last_foundation_pipeline = user_data.get("foundation_pipeline")
@@ -402,20 +384,15 @@ class AiConverter:
         del raw_images
         clear_memory.clear()
 
-        
-        
         logging.info("meta_data = {}".format(pprint.pprint(meta_data_json)))
-        print("\033[1;32mAI out!\033[0m All images save in folder: {}".format(output_folder))
+        print("\033[1;32mAI out!\033[0m All images save in folder: {}".format(
+            output_folder))
 
-        
         return meta_data_json
-
-
-
 
     @utils.try_catch_error
     def main(self):
-        print ("\n\n\n\033[33mStarting a new job:\033[0m")
+        print("\n\n\n\033[33mStarting a new job:\033[0m")
         begin_time = time.time()
         with open(self.data_file, mode='r') as f:
             # get dictionary from json file
@@ -425,7 +402,6 @@ class AiConverter:
         self.canny_image = self.convert2canny(data.get("input_image"))
         self.initiate_pipeline(data)
         meta_data = self.text2image(data)
-        
 
         data["meta_data"] = meta_data
         if meta_data:
@@ -433,29 +409,27 @@ class AiConverter:
         else:
             data["direction"] = "FAIL"
             os.rename(self.data_file,
-                          utils.get_EA_dump_folder_file("FAILED_{}".format( self.session)))
+                      utils.get_EA_dump_folder_file("FAILED_{}".format(self.session)))
         # data["compute_time"] = float(time.time() - begin_time)
-        
+
         # logging.info("time = {}s".format(data['compute_time']))
         used_time_note = "{}s".format(time.time() - begin_time)
-        print ("Job finished! Time elapsed: {}".format(used_time_note))
-        utils.toast(main_text="AI Rendering Job Done!", sub_text= "Job Time = {}".format(used_time_note))
+        print("Job finished! Time elapsed: {}".format(used_time_note))
+        utils.toast(main_text="AI Rendering Job Done!",
+                    sub_text="Job Time = {}".format(used_time_note))
         with open(self.data_file, mode='w') as f:
             # get dictionary from json file
             json.dump(data, f)
 
 
-
-
-
-
 class App:
     def __init__(self):
 
-        print ("\n\nWelcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
-        print ("Feedbacks are highly appreciated!")
-        print ("Please report any bugs or issues to: Sen Zhang.")
-        
+        print(
+            "\n\nWelcome to EnneadTab AI Render Farm!!! This is a work-in-progress product.")
+        print("Feedbacks are highly appreciated!")
+        print("Please report any bugs or issues to: Sen Zhang.")
+
         self.AI = AiConverter()
         self.window = tk.Tk()
         self.window.iconify()
@@ -486,27 +460,26 @@ class App:
         if time.time() - self.begining_time > 60*30:
             self.window.destroy()
             return
-        
+
         self.window.after(1000, self.check_job)
 
     def check_job(self):
         if not self.is_thinking and self.AI.has_new_job():
             # reset timer
             self.begining_time = time.time()
-            
-            
+
             self.is_thinking = True
             self.talk_bubble.configure(text="Porcessing...")
             self.AI.main()
             self.is_thinking = False
             self.talk_bubble.configure(text="Standby.")
-            
+
             logging.info("DONE!")
         self.window.after(1, self.update)
 
     def run(self):
-        print ("\n\n\033[1;37mThe app is up and running!\033[0m")
-        print ("Enjoy!")
+        print("\n\n\033[1;37mThe app is up and running!\033[0m")
+        print("Enjoy!")
         self.window.mainloop()
 
 
@@ -514,12 +487,11 @@ class App:
 def main():
     if is_another_app_running():
         return
-    
-   
+
     app = App()
     app.run()
+
 
 ########################################
 if __name__ == "__main__":
     main()
-

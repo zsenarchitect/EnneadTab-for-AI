@@ -5,6 +5,7 @@ This is a working-in-progress project that will evetually intergrated to the Enn
 
 
 - How to activate:
+Note: only can activate the venv. from workstation computer. Loaner laptop is not capable.
 when inside the terminal, type <.venv/Scripts/activate> and enter(no <>)
 it will show as below:
 PS C:\Users\szhang\github\EnneadTab-for-AI> .venv/Scripts/activate
